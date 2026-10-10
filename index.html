@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản lý Vận hành Kỹ thuật - Centara Vân Đồn</title>
+    <!-- Thư viện SheetJS đọc dữ liệu -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
         :root {
@@ -27,20 +28,22 @@
         .card-title-link:hover { color: var(--accent); }
         .card-desc { font-size: 0.8rem; color: #64748b; margin-bottom: 12px; line-height: 1.4; border-top: 1px dashed var(--border); padding-top: 8px; }
         .media-links { display: flex; gap: 8px; font-size: 0.75rem; }
-        .media-links a { color: var(--accent); text-decoration: none; background: #e0f2fe; padding: 4px 10px; border-radius: 4px; font-weight: 500; transition: background 0.2s; }
+        .media-links a { color: var(--accent); text-decoration: none; background: #e0f2fe; padding: 5px 10px; border-radius: 4px; font-weight: 500; transition: background 0.2s; display: inline-flex; align-items: center; gap: 4px; }
         .media-links a:hover { background: #bae6fd; }
         footer { text-align: center; margin-top: 35px; font-size: 0.75rem; color: #94a3b8; border-top: 1px solid var(--border); padding-top: 15px; }
+        .sync-status { font-size: 0.7rem; color: #38bdf8; margin-top: 5px; }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
             <h1>Hệ thống Quản lý Kỹ thuật Khách sạn</h1>
-            <p>Centara Resort & Spa Vân Đồn - Dashboard Tích hợp Excel & Media</p>
+            <p>Centara Resort & Spa Vân Đồn - Dashboard Đồng bộ Trực tuyến Google Sheets</p>
+            <div id="syncStatus" class="sync-status">Đang kết nối dữ liệu trực tuyến từ Google Sheets...</div>
         </header>
 
         <div class="grid" id="modulesGrid">
-            <!-- Đang tải dữ liệu động từ Excel -->
+            <!-- Dữ liệu render động -->
         </div>
 
         <footer>
@@ -49,40 +52,47 @@
     </div>
 
     <script>
+        // Danh mục chuẩn 9 hệ thống hạ tầng tòa nhà
         const systems = [
             { id: "01", folder: "01_chiller", icon: "❄️", name: "Hệ thống Chiller" },
             { id: "02", folder: "02_dieu_hoa", icon: "🌀", name: "Hệ thống Điều hòa không khí" },
             { id: "03", folder: "03_pccc_duong_ong", icon: "🚒", name: "Đường ống nước PCCC" },
             { id: "04", folder: "04_pccc_thong_gio", icon: "💨", name: "Thông gió & Hút khói PCCC" },
-            { id: "05", folder: "05_gio_tuoi_PAU", icon: "🌬️", name: "Hệ thống Gió tươi PAU" },
+            { id: "05", folder: "05_hut_mui", icon: "🍳", name: "Hệ thống Hút mùi bếp" },
             { id: "06", folder: "06_nuoc_nong", icon: "♨️", name: "Nước nóng sinh hoạt" },
-            { id: "07", folder: "07_nuoc_sinh_hoat", icon: "💧", name: "Cấp thoát nước sinh hoạt" },
+            { id: "07", folder: "07_cap_thoat_nuoc", icon: "💧", name: "Cấp thoát nước sinh hoạt" },
             { id: "08", folder: "08_am_thanh", icon: "🔊", name: "Hệ thống Âm thanh" },
             { id: "09", folder: "09_loc_nuoc_thai", icon: "♻️", name: "Hệ thống Lọc nước thải" }
         ];
 
-        async function loadIndexData() {
-            let sheetDescriptions = {};
+        const sheetID = "1JEdtd_Ww0_K---Q98Ui7egs7ICRUILtf";
+        const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetID}/export?format=csv`;
+
+        async function loadOnlineData() {
+            let descriptions = {};
+            const statusEl = document.getElementById("syncStatus");
             try {
-                const response = await fetch('./data.xlsx');
-                const arrayBuffer = await response.arrayBuffer();
-                const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+                const response = await fetch(csvUrl);
+                if (!response.ok) throw new Error("Không thể kết nối Google Sheets");
+                const csvText = await response.text();
                 
-                workbook.SheetNames.forEach(sheetName => {
-                    const cleanName = sheetName.trim();
-                    const worksheet = workbook.Sheets[sheetName];
-                    const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-                    
-                    if (rows.length > 1 && rows[1][0]) {
-                        sheetDescriptions[cleanName] = rows[1][0];
-                    } else if (rows.length > 0 && rows[0][1]) {
-                        sheetDescriptions[cleanName] = rows[0][1];
+                const rows = csvText.split('\n').map(row => row.split(','));
+                rows.forEach(row => {
+                    if (row.length >= 2 && row[0]) {
+                        let key = row[0].replace(/['"]+/g, '').trim();
+                        let val = row[1].replace(/['"]+/g, '').trim();
+                        descriptions[key] = val;
                     }
                 });
+
+                statusEl.innerText = "Đã đồng bộ trực tuyến thành công từ Google Sheets!";
+                statusEl.style.color = "#4ade80";
             } catch (error) {
-                console.warn("Không đọc được tệp data.xlsx trực tiếp, dùng cấu hình mặc định.");
+                console.warn("Lỗi đồng bộ trực tuyến:", error);
+                statusEl.innerText = "Chạy ở chế độ ngoại tuyến (Dùng cấu hình mặc định)";
+                statusEl.style.color = "#f87171";
             }
-            renderDashboard(sheetDescriptions);
+            renderDashboard(descriptions);
         }
 
         function renderDashboard(descriptions) {
@@ -100,14 +110,14 @@
                     </div>
                     <div class="media-links">
                         <a href="./${sys.folder}/image/" target="_blank">📁 Thư mục Ảnh</a>
-                        <a href="./${sys.folder}/video/" target="_blank">🎬 Thư mục Video</a>
+                        <a href="./${sys.folder}/picture/" target="_blank">🎬 Thư mục Video</a>
                     </div>
                 `;
                 grid.appendChild(card);
             });
         }
 
-        document.addEventListener("DOMContentLoaded", loadIndexData);
+        document.addEventListener("DOMContentLoaded", loadOnlineData);
     </script>
 </body>
 </html>
