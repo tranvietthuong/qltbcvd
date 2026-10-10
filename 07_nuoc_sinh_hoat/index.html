@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>Quản lý Hệ thống - Centara Vân Đồn</title>
+    <title>Quản lý Hệ thống Nước Sinh Hoạt - Centara Vân Đồn</title>
     <!-- Thư viện SheetJS đọc file Excel trực tuyến -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
@@ -24,7 +24,7 @@
         
         /* THANH TRƯỢT TỔNG THỂ CHO TOÀN BỘ CÁC HẠNG MỤC / ĐỀ MỤC */
         .master-scroll-container {
-            max-height: 480px; /* Chiều cao cố định tổng thể, có thể vuốt lên xuống để xem hết các trục */
+            max-height: 480px;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
             border: 1px solid var(--border);
@@ -70,7 +70,7 @@
 
     <div class="container">
         <header>
-            <h1 id="pageTitle">Chi tiết Hệ thống Thiết bị</h1>
+            <h1 id="pageTitle">Hệ thống Nước Sinh Hoạt</h1>
             <a href="../index.html" class="back-btn">← Dashboard</a>
         </header>
 
@@ -79,9 +79,8 @@
             <h2 id="sectionTitle">1. Thông số kỹ thuật & Thiết bị theo Trục</h2>
             <input type="text" id="search" class="search-box" placeholder="🔍 Tìm kiếm nhanh mã thiết bị, khu vực, tầng..." onkeyup="filterData()">
             
-            <!-- Khung thanh trượt tổng thể chứa toàn bộ các đề mục -->
             <div class="master-scroll-container" id="sectionsContainer">
-                <div class="loading-text">Đang phân tích và đồng bộ dữ liệu theo đề mục từ Google Drive...</div>
+                <div class="loading-text">Đang phân tích và đồng bộ dữ liệu sheet 07 từ Google Drive...</div>
             </div>
         </div>
 
@@ -136,7 +135,7 @@
             try {
                 const pathParts = window.location.pathname.split('/');
                 const folderName = pathParts[pathParts.length - 2] || pathParts[pathParts.length - 1];
-                const sheetKey = folderName.substring(0, 2);
+                const sheetKey = folderName.substring(0, 2); // Nhận diện "07"
 
                 const response = await fetch(excelUrl);
                 if (!response.ok) throw new Error("Không thể kết nối Google Drive");
@@ -241,7 +240,6 @@
             renderSections(filteredSections);
         }
 
-        // Xử lý Modal Ảnh và Video
         function openImageViewer() { currentImgIdx = 0; updateImageModal(); document.getElementById("imageModal").style.display = "flex"; }
         function updateImageModal() {
             document.getElementById("modalImage").src = imageList[currentImgIdx];
