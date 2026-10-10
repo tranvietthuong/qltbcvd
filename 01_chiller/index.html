@@ -80,7 +80,7 @@
             <input type="text" id="search" class="search-box" placeholder="🔍 Tìm kiếm nhanh mã thiết bị, khu vực, tầng..." onkeyup="filterData()">
             
             <div class="master-scroll-container" id="sectionsContainer">
-                <div class="loading-text">Đang đồng bộ dữ liệu từ Google Drive...</div>
+                <div class="loading-text">Đang đồng bộ dữ liệu từ Google Trang tính...</div>
             </div>
         </div>
 
@@ -123,7 +123,8 @@
 
     <script>
         let fullSheetData = [];
-        const sheetID = "1JEdtd_Ww0_K---Q98Ui7egs7ICRUILtf";
+        // ID mới của Google Trang tính "qltbcvd"
+        const sheetID = "1LEvn6ad4ZcsYAcl4mu17CAW4MZByVFWiqHGMe7dVABE";
         const excelUrl = `https://docs.google.com/spreadsheets/d/${sheetID}/export?format=xlsx`;
 
         let imageList = ["image/1.jpg", "image/2.jpg", "image/3.jpg"];
@@ -133,20 +134,20 @@
 
         async function loadSheetData() {
             try {
-                // TỰ ĐỘNG NHẬN DIỆN SỐ THỨ TỰ SHEET TỪ TÊN THƯ MỤC HIỆN TẠI (vd: "06_nuoc_nong" -> "06")
+                // Tự động nhận diện tên sheet từ tên thư mục hiện tại (vd: "07_cap_thoat_nuoc" -> "07")
                 const pathParts = window.location.pathname.split('/');
                 let folderName = pathParts[pathParts.length - 2] || pathParts[pathParts.length - 1];
                 if (!folderName || folderName.includes('.html')) {
                     folderName = pathParts[pathParts.length - 3] || "01";
                 }
-                const sheetKey = folderName.substring(0, 2); // Lấy 2 ký tự đầu: "01", "02", "06", "07"...
+                const sheetKey = folderName.substring(0, 2); // Lấy "01", "02", "06", "07"...
 
                 const response = await fetch(excelUrl);
-                if (!response.ok) throw new Error("Không thể kết nối Google Drive");
+                if (!response.ok) throw new Error("Không thể kết nối Google Sheets");
                 const arrayBuffer = await response.arrayBuffer();
                 const workbook = XLSX.read(arrayBuffer, { type: 'array' });
                 
-                // Tìm sheet khớp với số thứ tự thư mục
+                // Tìm sheet khớp với số thứ tự của thư mục
                 let targetSheetName = workbook.SheetNames.find(name => name.trim().startsWith(sheetKey)) || workbook.SheetNames[0];
                 
                 document.getElementById("pageTitle").innerText = `Hệ thống: ${targetSheetName}`;
@@ -158,7 +159,7 @@
                 parseSections(rows);
             } catch (err) {
                 console.warn("Lỗi tải dữ liệu:", err);
-                document.getElementById("sectionsContainer").innerHTML = `<div style="text-align:center; color:#e11d48; padding:15px;">Không tải được dữ liệu trực tuyến. Hãy chạy trang qua Live Server (http://127.0.0.1) và kiểm tra quyền chia sẻ file trên Google Drive!</div>`;
+                document.getElementById("sectionsContainer").innerHTML = `<div style="text-align:center; color:#e11d48; padding:15px;">Không tải được dữ liệu trực tuyến. Hãy chạy trang qua Live Server (http://127.0.0.1) và kiểm tra lại quyền chia sẻ file trên Google Drive ở chế độ 'Bất kỳ ai có đường dẫn đều có thể xem'!</div>`;
             }
         }
 
@@ -172,7 +173,6 @@
             let currentRows = [];
 
             rows.forEach((row) => {
-                // Nhận diện dòng tiêu đề đề mục (dòng có chữ ở ô đầu tiên và các ô sau trống hoặc viết hoa)
                 if (row.length > 0 && row[0] && (row[1] === undefined || row[1] === "" || String(row[0]).toUpperCase() === row[0])) {
                     if (currentRows.length > 0) {
                         fullSheetData.push({ title: currentSectionTitle, headers: currentHeaders, rows: currentRows });
@@ -183,13 +183,11 @@
                     return;
                 }
 
-                // Nhận diện dòng tiêu đề bảng (chứa STT, Mã, Khu_Vực...)
                 if (row.some(cell => String(cell).includes("STT") || String(cell).includes("Mã") || String(cell).includes("Khu_Vuc"))) {
                     currentHeaders = row.filter(c => c !== undefined && c !== "");
                     return;
                 }
 
-                // Dòng dữ liệu (có 4 cột hoặc các ô có dữ liệu)
                 if (row.some(cell => cell !== undefined && cell !== "")) {
                     if (currentHeaders.length === 0) currentHeaders = ["STT", "Mã Thiết Bị", "Khu Vực / Phòng", "Ghi Chú"];
                     currentRows.push(row);

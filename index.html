@@ -2,9 +2,9 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản lý Vận hành Kỹ thuật - Centara Vân Đồn</title>
-    <!-- Thư viện SheetJS đọc dữ liệu -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>Quản lý Hệ thống Kỹ thuật - Centara Vân Đồn</title>
+    <!-- Thư viện SheetJS đọc file Excel trực tuyến -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
         :root {
@@ -12,138 +12,273 @@
             --accent: #0284c7;
             --bg: #f8fafc;
             --card: #ffffff;
-            --text: #334155;
             --border: #e2e8f0;
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: var(--bg); color: var(--text); padding: 20px; }
-        header { text-align: center; margin-bottom: 25px; padding: 20px; background: var(--primary); color: white; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-        header h1 { font-size: 1.4rem; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
-        header p { font-size: 0.85rem; color: #94a3b8; }
-        .container { max-width: 1200px; margin: 0 auto; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
+        body { background: var(--bg); color: #334155; padding: 12px; }
+        header { display: flex; justify-content: space-between; align-items: center; background: var(--primary); color: white; padding: 12px 15px; border-radius: 6px; margin-bottom: 12px; }
+        header h1 { font-size: 1rem; text-transform: uppercase; }
+        .back-btn { text-decoration: none; background: var(--accent); color: white; padding: 6px 12px; border-radius: 4px; font-size: 0.85rem; font-weight: 500; }
         
-        /* Cả khung chữ nhật card biến thành vùng bấm linh hoạt */
-        .card { 
-            background: var(--card); 
-            border: 1px solid var(--border); 
-            border-radius: 8px; 
-            padding: 15px 18px; 
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02); 
-            transition: all 0.2s ease; 
-            display: flex; 
-            flex-direction: column; 
-            justify-content: space-between; 
-            cursor: pointer; 
+        .section { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 12px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
+        
+        /* THANH TRƯỢT TỔNG THỂ CHO TOÀN BỘ CÁC HẠNG MỤC / ĐỀ MỤC */
+        .master-scroll-container {
+            max-height: 480px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 8px;
+            background: #fff;
         }
-        .card:hover { 
-            border-color: var(--accent); 
-            box-shadow: 0 6px 12px -2px rgba(2, 132, 199, 0.1); 
-            transform: translateY(-2px);
-        }
+
+        /* Tiêu đề Đề mục */
+        .group-header { font-size: 0.9rem; font-weight: 700; color: #0369a1; background: #e0f2fe; padding: 7px 10px; border-radius: 4px; margin-top: 12px; margin-bottom: 6px; border-left: 4px solid var(--accent); }
+        .group-header:first-of-type { margin-top: 0; }
+
+        .search-box { width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 10px; font-size: 0.85rem; }
         
-        .card-title { color: var(--primary); font-size: 1rem; font-weight: 600; display: block; margin-bottom: 8px; }
-        .card:hover .card-title { color: var(--accent); }
+        .table-container { width: 100%; overflow-x: auto; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+        th, td { padding: 6px 10px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
+        th { background: #f1f5f9; color: var(--primary); font-weight: 600; position: sticky; top: 0; z-index: 5; }
+        tr:hover { background: #f8fafc; }
+
+        /* Nhóm nút bấm Media */
+        .btn-group { display: flex; gap: 10px; flex-wrap: wrap; }
+        .action-btn { background: var(--accent); color: white; border: none; padding: 10px 16px; border-radius: 6px; font-size: 0.9rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s; }
+        .action-btn:hover { background: #0369a1; }
+
+        /* Modal Toàn màn hình (Fullscreen Viewer) */
+        .fullscreen-modal { display: none; position: fixed; z-index: 2000; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.95); flex-direction: column; align-items: center; justify-content: center; touch-action: pan-x pan-y pinch-zoom; }
+        .modal-content-container { position: relative; width: 100%; height: 85%; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .fullscreen-modal img, .fullscreen-modal video { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 4px; }
         
-        .card-desc { font-size: 0.8rem; color: #64748b; margin-bottom: 12px; line-height: 1.4; border-top: 1px dashed var(--border); padding-top: 8px; }
-        .media-links { display: flex; gap: 8px; font-size: 0.75rem; }
-        .media-links a { color: var(--accent); text-decoration: none; background: #e0f2fe; padding: 5px 10px; border-radius: 4px; font-weight: 500; transition: background 0.2s; display: inline-flex; align-items: center; gap: 4px; }
-        .media-links a:hover { background: #bae6fd; }
-        
-        footer { text-align: center; margin-top: 35px; font-size: 0.75rem; color: #94a3b8; border-top: 1px solid var(--border); padding-top: 15px; }
-        .sync-status { font-size: 0.7rem; color: #38bdf8; margin-top: 5px; }
+        .modal-close { position: absolute; top: 15px; right: 20px; color: white; font-size: 2.5rem; cursor: pointer; z-index: 2010; background: rgba(0,0,0,0.5); width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
+        .nav-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0, 0, 0, 0.6); color: white; border: none; padding: 15px 12px; cursor: pointer; font-size: 1.5rem; z-index: 2010; border-radius: 4px; transition: background 0.2s; }
+        .nav-btn:hover { background: rgba(2, 132, 199, 0.8); }
+        .prev-btn { left: 10px; }
+        .next-btn { right: 10px; }
+        .modal-counter { color: white; font-size: 0.9rem; margin-top: 10px; background: rgba(255,255,255,0.1); padding: 4px 12px; border-radius: 20px; }
+
+        footer { text-align: center; font-size: 0.75rem; color: #94a3b8; margin-top: 12px; }
+        .loading-text { text-align: center; color: #0284c7; padding: 15px; font-size: 0.85rem; }
     </style>
 </head>
 <body>
+
     <div class="container">
         <header>
-            <h1>Hệ thống Quản lý Kỹ thuật Khách sạn</h1>
-            <p>Centara Resort & Spa Vân Đồn - Dashboard Đồng bộ Trực tuyến Google Sheets</p>
-            <div id="syncStatus" class="sync-status">Đang kết nối dữ liệu trực tuyến từ Google Sheets...</div>
+            <h1 id="pageTitle">Hệ thống Kỹ thuật</h1>
+            <a href="../index.html" class="back-btn">← Dashboard</a>
         </header>
 
-        <div class="grid" id="modulesGrid">
-            <!-- Dữ liệu render động -->
+        <!-- PHẦN 1: BẢNG DỮ LIỆU ĐÓNG KHUNG CÓ THANH TRƯỢT TỔNG THỂ -->
+        <div class="section">
+            <h2 id="sectionTitle">1. Thông số kỹ thuật & Thiết bị theo Trục</h2>
+            <input type="text" id="search" class="search-box" placeholder="🔍 Tìm kiếm nhanh mã thiết bị, khu vực, tầng..." onkeyup="filterData()">
+            
+            <div class="master-scroll-container" id="sectionsContainer">
+                <div class="loading-text">Đang đồng bộ dữ liệu từ Google Trang tính...</div>
+            </div>
         </div>
 
-        <footer>
-            Phòng Kỹ thuật - Centara Vân Đồn &copy; 2026 | Mô hình Quản lý Phi tập trung (Modular Web)
-        </footer>
+        <!-- PHẦN 2: NÚT XEM ẢNH & VIDEO -->
+        <div class="section">
+            <h2>2. Tài liệu trực quan & Hướng dẫn vận hành</h2>
+            <div class="btn-group">
+                <button class="action-btn" onclick="openImageViewer()">📁 Xem Sơ đồ / Ảnh hệ thống</button>
+                <button class="action-btn" onclick="openVideoViewer()">🎬 Xem Video Vận Hành</button>
+            </div>
+        </div>
+
+        <footer>Phòng Kỹ thuật - Centara Vân Đồn &copy; 2026</footer>
+    </div>
+
+    <!-- MODAL XEM ẢNH -->
+    <div id="imageModal" class="fullscreen-modal" onclick="closeModals(event)">
+        <span class="modal-close" onclick="closeModals()">&times;</span>
+        <button class="nav-btn prev-btn" onclick="changeImage(-1, event)">&#10094;</button>
+        <div class="modal-content-container" id="imageContainer">
+            <img id="modalImage" src="" alt="Ảnh hệ thống">
+        </div>
+        <button class="nav-btn next-btn" onclick="changeImage(1, event)">&#10095;</button>
+        <div class="modal-counter" id="imageCounter">1 / 1</div>
+    </div>
+
+    <!-- MODAL XEM VIDEO -->
+    <div id="videoModal" class="fullscreen-modal" onclick="closeModals(event)">
+        <span class="modal-close" onclick="closeModals()">&times;</span>
+        <button class="nav-btn prev-btn" onclick="changeVideo(-1, event)">&#10094;</button>
+        <div class="modal-content-container">
+            <video id="modalVideo" controls autoplay>
+                <source id="videoSource" src="" type="video/mp4">
+                Trình duyệt không hỗ trợ video.
+            </video>
+        </div>
+        <button class="nav-btn next-btn" onclick="changeVideo(1, event)">&#10095;</button>
+        <div class="modal-counter" id="videoCounter">1 / 1</div>
     </div>
 
     <script>
-        // Danh sách chuẩn 9 hệ thống khớp hoàn toàn với tên thư mục thực tế trên máy
-        const systems = [
-            { id: "01", folder: "01_chiller", icon: "❄️", name: "Hệ thống Chiller" },
-            { id: "02", folder: "02_dieu_hoa", icon: "🌀", name: "Hệ thống Điều hòa không khí" },
-            { id: "03", folder: "03_pccc_duong_ong", icon: "🚒", name: "Đường ống nước PCCC" },
-            { id: "04", folder: "04_pccc_thong_gio", icon: "💨", name: "Thông gió & Hút khói PCCC" },
-            { id: "05", folder: "05_hut_mui", icon: "🍳", name: "Hệ thống Hút mùi bếp" },
-            { id: "06", folder: "06_nuoc_nong", icon: "♨️", name: "Nước nóng sinh hoạt" },
-            { id: "07", folder: "07_nuoc_sinh_hoat", icon: "💧", name: "Nước lạnh sinh hoạt" }, // Đã chuẩn hóa tên thư mục khớp với máy anh
-            { id: "08", folder: "08_am_thanh", icon: "🔊", name: "Hệ thống Âm thanh" },
-            { id: "09", folder: "09_loc_nuoc_thai", icon: "♻️", name: "Hệ thống Lọc nước thải" }
-        ];
+        let fullSheetData = [];
+        // ID mới của Google Trang tính "qltbcvd"
+        const sheetID = "1LEvn6ad4ZcsYAcl4mu17CAW4MZByVFWiqHGMe7dVABE";
+        const excelUrl = `https://docs.google.com/spreadsheets/d/${sheetID}/export?format=xlsx`;
 
-        const sheetID = "1JEdtd_Ww0_K---Q98Ui7egs7ICRUILtf";
-        const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetID}/export?format=csv`;
+        let imageList = ["image/1.jpg", "image/2.jpg", "image/3.jpg"];
+        let videoList = ["video/1.mp4", "video/2.mp4"];
+        let currentImgIdx = 0;
+        let currentVidIdx = 0;
 
-        async function loadOnlineData() {
-            let descriptions = {};
-            const statusEl = document.getElementById("syncStatus");
+        async function loadSheetData() {
             try {
-                const response = await fetch(csvUrl);
-                if (!response.ok) throw new Error("Không thể kết nối Google Sheets");
-                const csvText = await response.text();
-                
-                const rows = csvText.split('\n').map(row => row.split(','));
-                rows.forEach(row => {
-                    if (row.length >= 2 && row[0]) {
-                        let key = row[0].replace(/['"]+/g, '').trim();
-                        let val = row[1].replace(/['"]+/g, '').trim();
-                        descriptions[key] = val;
-                    }
-                });
+                // Tự động nhận diện tên sheet từ tên thư mục hiện tại (vd: "07_cap_thoat_nuoc" -> "07")
+                const pathParts = window.location.pathname.split('/');
+                let folderName = pathParts[pathParts.length - 2] || pathParts[pathParts.length - 1];
+                if (!folderName || folderName.includes('.html')) {
+                    folderName = pathParts[pathParts.length - 3] || "01";
+                }
+                const sheetKey = folderName.substring(0, 2); // Lấy "01", "02", "06", "07"...
 
-                statusEl.innerText = "Đã đồng bộ trực tuyến thành công từ Google Sheets!";
-                statusEl.style.color = "#4ade80";
-            } catch (error) {
-                console.warn("Lỗi đồng bộ trực tuyến:", error);
-                statusEl.innerText = "Chạy ở chế độ ngoại tuyến (Dùng cấu hình mặc định)";
-                statusEl.style.color = "#f87171";
+                const response = await fetch(excelUrl);
+                if (!response.ok) throw new Error("Không thể kết nối Google Sheets");
+                const arrayBuffer = await response.arrayBuffer();
+                const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+                
+                // Tìm sheet khớp với số thứ tự của thư mục
+                let targetSheetName = workbook.SheetNames.find(name => name.trim().startsWith(sheetKey)) || workbook.SheetNames[0];
+                
+                document.getElementById("pageTitle").innerText = `Hệ thống: ${targetSheetName}`;
+                document.getElementById("sectionTitle").innerText = `1. Thông số kỹ thuật & Thiết bị (Sheet: ${targetSheetName})`;
+
+                const worksheet = workbook.Sheets[targetSheetName];
+                const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                
+                parseSections(rows);
+            } catch (err) {
+                console.warn("Lỗi tải dữ liệu:", err);
+                document.getElementById("sectionsContainer").innerHTML = `<div style="text-align:center; color:#e11d48; padding:15px;">Không tải được dữ liệu trực tuyến. Hãy chạy trang qua Live Server (http://127.0.0.1) và kiểm tra lại quyền chia sẻ file trên Google Drive ở chế độ 'Bất kỳ ai có đường dẫn đều có thể xem'!</div>`;
             }
-            renderDashboard(descriptions);
         }
 
-        function renderDashboard(descriptions) {
-            const grid = document.getElementById("modulesGrid");
-            grid.innerHTML = "";
+        function parseSections(rows) {
+            fullSheetData = [];
+            let container = document.getElementById("sectionsContainer");
+            container.innerHTML = "";
 
-            systems.forEach(sys => {
-                const descText = descriptions[sys.id] || `Quản lý vận hành, thông số kỹ thuật và thiết bị hạ tầng ${sys.name}.`;
-                const card = document.createElement("div");
-                card.className = "card";
-                
-                // Bấm vào bất kỳ đâu trên khung chữ nhật sẽ nhảy đến trang index của hệ thống đó
-                card.onclick = () => {
-                    window.location.href = `./${sys.folder}/index.html`;
-                };
+            let currentSectionTitle = "Thông tin chung";
+            let currentHeaders = [];
+            let currentRows = [];
 
-                card.innerHTML = `
-                    <div>
-                        <div class="card-title">${sys.icon} ${sys.id}. ${sys.name}</div>
-                        <div class="card-desc">${descText}</div>
-                    </div>
-                    <div class="media-links">
-                        <a href="./${sys.folder}/image/" target="_blank" onclick="event.stopPropagation()">📁 Thư mục Ảnh</a>
-                        <a href="./${sys.folder}/video/" target="_blank" onclick="event.stopPropagation()">🎬 Thư mục Video</a>
+            rows.forEach((row) => {
+                if (row.length > 0 && row[0] && (row[1] === undefined || row[1] === "" || String(row[0]).toUpperCase() === row[0])) {
+                    if (currentRows.length > 0) {
+                        fullSheetData.push({ title: currentSectionTitle, headers: currentHeaders, rows: currentRows });
+                    }
+                    currentSectionTitle = row[0];
+                    currentHeaders = [];
+                    currentRows = [];
+                    return;
+                }
+
+                if (row.some(cell => String(cell).includes("STT") || String(cell).includes("Mã") || String(cell).includes("Khu_Vuc"))) {
+                    currentHeaders = row.filter(c => c !== undefined && c !== "");
+                    return;
+                }
+
+                if (row.some(cell => cell !== undefined && cell !== "")) {
+                    if (currentHeaders.length === 0) currentHeaders = ["STT", "Mã Thiết Bị", "Khu Vực / Phòng", "Ghi Chú"];
+                    currentRows.push(row);
+                }
+            });
+
+            if (currentRows.length > 0) {
+                fullSheetData.push({ title: currentSectionTitle, headers: currentHeaders, rows: currentRows });
+            }
+
+            renderSections(fullSheetData);
+        }
+
+        function renderSections(sections) {
+            let container = document.getElementById("sectionsContainer");
+            container.innerHTML = "";
+
+            if (sections.length === 0) {
+                container.innerHTML = `<div style="text-align:center; padding:15px;">Không có dữ liệu đề mục trong sheet.</div>`;
+                return;
+            }
+
+            sections.forEach((sec) => {
+                let div = document.createElement("div");
+                div.className = "section-group";
+                div.innerHTML = `
+                    <div class="group-header"><span>📌 ${sec.title}</span></div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>${sec.headers.map(h => `<th>${h}</th>`).join('')}</tr>
+                            </thead>
+                            <tbody>
+                                ${sec.rows.map(r => `<tr>${sec.headers.map((_, i) => `<td>${r[i] !== undefined ? r[i] : ''}</td>`).join('')}</tr>`).join('')}
+                            </tbody>
+                        </table>
                     </div>
                 `;
-                grid.appendChild(card);
+                container.appendChild(div);
             });
         }
 
-        document.addEventListener("DOMContentLoaded", loadOnlineData);
+        function filterData() {
+            let kw = document.getElementById("search").value.toLowerCase();
+            let filteredSections = fullSheetData.map(sec => {
+                let filteredRows = sec.rows.filter(row => row.some(cell => String(cell).toLowerCase().includes(kw)));
+                return { ...sec, rows: filteredRows };
+            }).filter(sec => sec.rows.length > 0);
+
+            let container = document.getElementById("sectionsContainer");
+            container.innerHTML = "";
+            if (filteredSections.length === 0) {
+                container.innerHTML = `<div style="text-align:center; padding:15px; color:#64748b;">Không tìm thấy kết quả phù hợp.</div>`;
+                return;
+            }
+            renderSections(filteredSections);
+        }
+
+        function openImageViewer() { currentImgIdx = 0; updateImageModal(); document.getElementById("imageModal").style.display = "flex"; }
+        function updateImageModal() {
+            document.getElementById("modalImage").src = imageList[currentImgIdx];
+            document.getElementById("imageCounter").innerText = `${currentImgIdx + 1} / ${imageList.length}`;
+        }
+        function changeImage(dir, event) {
+            if(event) event.stopPropagation();
+            currentImgIdx = (currentImgIdx + dir + imageList.length) % imageList.length;
+            updateImageModal();
+        }
+
+        function openVideoViewer() { currentVidIdx = 0; updateVideoModal(); document.getElementById("videoModal").style.display = "flex"; }
+        function updateVideoModal() {
+            const vid = document.getElementById("modalVideo");
+            document.getElementById("videoSource").src = videoList[currentVidIdx];
+            vid.load(); vid.play();
+            document.getElementById("videoCounter").innerText = `${currentVidIdx + 1} / ${videoList.length}`;
+        }
+        function changeVideo(dir, event) {
+            if(event) event.stopPropagation();
+            currentVidIdx = (currentVidIdx + dir + videoList.length) % videoList.length;
+            updateVideoModal();
+        }
+
+        function closeModals(event) {
+            if (!event || event.target.id === 'imageModal' || event.target.id === 'videoModal' || event.target.classList.contains('modal-close')) {
+                document.getElementById("imageModal").style.display = "none";
+                document.getElementById("videoModal").style.display = "none";
+                document.getElementById("modalVideo").pause();
+            }
+        }
+
+        window.onload = loadSheetData;
     </script>
 </body>
 </html>
