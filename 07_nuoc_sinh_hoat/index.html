@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>Quản lý Hệ thống Nước Sinh Hoạt - Centara Vân Đồn</title>
+    <title>Quản lý Hệ thống Nước Lạnh Sinh Hoạt - Centara Vân Đồn</title>
     <!-- Thư viện SheetJS đọc file Excel trực tuyến -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
@@ -42,7 +42,7 @@
         .table-container { width: 100%; overflow-x: auto; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 10px; }
         table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
         th, td { padding: 6px 10px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
-        th { background: #f1f5f9; color: var(--primary); font-weight: 600; }
+        th { background: #f1f5f9; color: var(--primary); font-weight: 600; position: sticky; top: 0; z-index: 5; }
         tr:hover { background: #f8fafc; }
 
         /* Nhóm nút bấm Media */
@@ -70,7 +70,7 @@
 
     <div class="container">
         <header>
-            <h1 id="pageTitle">Hệ thống Nước Sinh Hoạt</h1>
+            <h1 id="pageTitle">Hệ thống Nước Lạnh Sinh Hoạt</h1>
             <a href="../index.html" class="back-btn">← Dashboard</a>
         </header>
 
@@ -80,7 +80,7 @@
             <input type="text" id="search" class="search-box" placeholder="🔍 Tìm kiếm nhanh mã thiết bị, khu vực, tầng..." onkeyup="filterData()">
             
             <div class="master-scroll-container" id="sectionsContainer">
-                <div class="loading-text">Đang phân tích và đồng bộ dữ liệu sheet 07 từ Google Drive...</div>
+                <div class="loading-text">Đang đồng bộ dữ liệu sheet 07 từ Google Drive...</div>
             </div>
         </div>
 
@@ -97,27 +97,27 @@
     </div>
 
     <!-- MODAL XEM ẢNH -->
-    <div id="imageModal" class="fullscreen-modal">
+    <div id="imageModal" class="fullscreen-modal" onclick="closeModals(event)">
         <span class="modal-close" onclick="closeModals()">&times;</span>
-        <button class="nav-btn prev-btn" onclick="changeImage(-1)">&#10094;</button>
+        <button class="nav-btn prev-btn" onclick="changeImage(-1, event)">&#10094;</button>
         <div class="modal-content-container" id="imageContainer">
             <img id="modalImage" src="" alt="Ảnh hệ thống">
         </div>
-        <button class="nav-btn next-btn" onclick="changeImage(1)">&#10095;</button>
+        <button class="nav-btn next-btn" onclick="changeImage(1, event)">&#10095;</button>
         <div class="modal-counter" id="imageCounter">1 / 1</div>
     </div>
 
     <!-- MODAL XEM VIDEO -->
-    <div id="videoModal" class="fullscreen-modal">
+    <div id="videoModal" class="fullscreen-modal" onclick="closeModals(event)">
         <span class="modal-close" onclick="closeModals()">&times;</span>
-        <button class="nav-btn prev-btn" onclick="changeVideo(-1)">&#10094;</button>
+        <button class="nav-btn prev-btn" onclick="changeVideo(-1, event)">&#10094;</button>
         <div class="modal-content-container">
             <video id="modalVideo" controls autoplay>
                 <source id="videoSource" src="" type="video/mp4">
                 Trình duyệt không hỗ trợ video.
             </video>
         </div>
-        <button class="nav-btn next-btn" onclick="changeVideo(1)">&#10095;</button>
+        <button class="nav-btn next-btn" onclick="changeVideo(1, event)">&#10095;</button>
         <div class="modal-counter" id="videoCounter">1 / 1</div>
     </div>
 
@@ -133,18 +133,18 @@
 
         async function loadSheetData() {
             try {
-                const pathParts = window.location.pathname.split('/');
-                const folderName = pathParts[pathParts.length - 2] || pathParts[pathParts.length - 1];
-                const sheetKey = folderName.substring(0, 2); // Nhận diện "07"
-
                 const response = await fetch(excelUrl);
                 if (!response.ok) throw new Error("Không thể kết nối Google Drive");
                 const arrayBuffer = await response.arrayBuffer();
                 const workbook = XLSX.read(arrayBuffer, { type: 'array' });
                 
-                let targetSheetName = workbook.SheetNames.find(name => name.trim().startsWith(sheetKey)) || workbook.SheetNames[0];
+                // GÁN CỨNG CHÍNH XÁC TÊN SHEET LÀ "07"
+                let targetSheetName = "07";
+                if (!workbook.Sheets[targetSheetName]) {
+                    targetSheetName = workbook.SheetNames.find(name => name.includes("07")) || workbook.SheetNames[0];
+                }
                 
-                document.getElementById("pageTitle").innerText = `Hệ thống: ${targetSheetName}`;
+                document.getElementById("pageTitle").innerText = `Hệ thống: Nước Lạnh Sinh Hoạt (Sheet ${targetSheetName})`;
                 document.getElementById("sectionTitle").innerText = `1. Thông số kỹ thuật & Thiết bị (Sheet: ${targetSheetName})`;
 
                 const worksheet = workbook.Sheets[targetSheetName];
@@ -167,6 +167,7 @@
             let currentRows = [];
 
             rows.forEach((row) => {
+                // Nhận diện dòng tiêu đề đề mục (dòng có chữ ở ô đầu tiên và các ô sau trống hoặc viết hoa)
                 if (row.length > 0 && row[0] && (row[1] === undefined || row[1] === "" || String(row[0]).toUpperCase() === row[0])) {
                     if (currentRows.length > 0) {
                         fullSheetData.push({ title: currentSectionTitle, headers: currentHeaders, rows: currentRows });
@@ -177,11 +178,13 @@
                     return;
                 }
 
-                if (row.some(cell => String(cell).includes("STT") || String(cell).includes("Mã") || String(cell).includes("Khu_Vuc"))) {
+                // Nhận diện dòng tiêu đề bảng (chứa STT, Ma_Thiet_Bi, Khu_Vuc...)
+                if (row.some(cell => String(cell).includes("STT") || String(cell).includes("Ma_Thiet_Bi") || String(cell).includes("Khu_Vuc"))) {
                     currentHeaders = row.filter(c => c !== undefined && c !== "");
                     return;
                 }
 
+                // Dòng dữ liệu
                 if (row.some(cell => cell !== undefined && cell !== "")) {
                     if (currentHeaders.length === 0) currentHeaders = ["STT", "Mã Thiết Bị", "Khu Vực / Phòng", "Ghi Chú"];
                     currentRows.push(row);
@@ -245,7 +248,8 @@
             document.getElementById("modalImage").src = imageList[currentImgIdx];
             document.getElementById("imageCounter").innerText = `${currentImgIdx + 1} / ${imageList.length}`;
         }
-        function changeImage(dir) {
+        function changeImage(dir, event) {
+            if(event) event.stopPropagation();
             currentImgIdx = (currentImgIdx + dir + imageList.length) % imageList.length;
             updateImageModal();
         }
@@ -257,15 +261,18 @@
             vid.load(); vid.play();
             document.getElementById("videoCounter").innerText = `${currentVidIdx + 1} / ${videoList.length}`;
         }
-        function changeVideo(dir) {
+        function changeVideo(dir, event) {
+            if(event) event.stopPropagation();
             currentVidIdx = (currentVidIdx + dir + videoList.length) % videoList.length;
             updateVideoModal();
         }
 
-        function closeModals() {
-            document.getElementById("imageModal").style.display = "none";
-            document.getElementById("videoModal").style.display = "none";
-            document.getElementById("modalVideo").pause();
+        function closeModals(event) {
+            if (!event || event.target.id === 'imageModal' || event.target.id === 'videoModal' || event.target.classList.contains('modal-close')) {
+                document.getElementById("imageModal").style.display = "none";
+                document.getElementById("videoModal").style.display = "none";
+                document.getElementById("modalVideo").pause();
+            }
         }
 
         window.onload = loadSheetData;

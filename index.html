@@ -123,6 +123,7 @@
                 const descText = descriptions[sys.id] || `Quản lý vận hành, thông số kỹ thuật và thiết bị hạ tầng ${sys.name}.`;
                 const card = document.createElement("div");
                 card.className = "card";
+                
                 // Bấm vào bất kỳ đâu trên khung chữ nhật sẽ nhảy đến trang index của hệ thống đó
                 card.onclick = () => {
                     window.location.href = `./${sys.folder}/index.html`;
@@ -135,7 +136,7 @@
                     </div>
                     <div class="media-links">
                         <a href="./${sys.folder}/image/" target="_blank" onclick="event.stopPropagation()">📁 Thư mục Ảnh</a>
-                        <a href="./${sys.folder}/picture/" target="_blank" onclick="event.stopPropagation()">🎬 Thư mục Video</a>
+                        <a href="./${sys.folder}/video/" target="_blank" onclick="event.stopPropagation()">🎬 Thư mục Video</a>
                     </div>
                 `;
                 grid.appendChild(card);
