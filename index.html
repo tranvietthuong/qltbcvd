@@ -20,10 +20,65 @@
         header p { font-size: 0.75rem; color: #94a3b8; }
         .container { max-width: 1200px; margin: 0 auto; }
         
+        /* Khung hỏi đáp AI ở trên cùng */
+        .ai-chat-box {
+            background: #ffffff;
+            border: 2px solid var(--accent);
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px -1px rgba(2, 132, 199, 0.1);
+        }
+        .ai-chat-header {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .ai-input-group {
+            display: flex;
+            gap: 8px;
+        }
+        .ai-input-group input {
+            flex: 1;
+            padding: 9px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.9rem;
+            outline: none;
+        }
+        .ai-input-group input:focus { border-color: var(--accent); }
+        .ai-input-group button {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 0 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+        .ai-input-group button:hover { background-color: #0369a1; }
+        
+        .ai-response {
+            margin-top: 10px;
+            padding: 10px 12px;
+            background: #f0f9ff;
+            border-left: 3px solid var(--accent);
+            border-radius: 0 6px 6px 0;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            color: #0369a1;
+            display: none;
+        }
+
         /* Thu hẹp khoảng cách lưới (gap) */
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 8px; }
         
-        /* Thu gọn padding bên trong thẻ card để các dòng khít nhau hơn */
         .card { 
             background: var(--card); 
             border: 1px solid var(--border); 
@@ -54,6 +109,19 @@
             <h1>Hệ thống Quản lý Kỹ thuật Khách sạn</h1>
             <p>Centara Resort & Spa Vân Đồn - Dashboard Hệ thống Hạ tầng</p>
         </header>
+
+        <!-- Khung Chat Trực Tiếp Vận Hành Điện Centara -->
+        <div class="ai-chat-box">
+            <div class="ai-chat-header">
+                <span>⚡</span>
+                <span>Hỏi đáp Nhanh - Sổ tay Centara Điện</span>
+            </div>
+            <div class="ai-input-group">
+                <input type="text" id="chatQuery" placeholder="Nhập câu hỏi kỹ thuật điện (VD: Sơ đồ tủ DB-A-KT, thông số Busway...)" onkeypress="handleKeyPress(event)" />
+                <button onclick="askCentaraAI()" id="sendBtn">Tra cứu</button>
+            </div>
+            <div id="chatResponse" class="ai-response"></div>
+        </div>
 
         <div class="grid" id="modulesGrid">
             <!-- Dữ liệu render động -->
@@ -97,6 +165,47 @@
                 `;
                 grid.appendChild(card);
             });
+        }
+
+        function handleKeyPress(e) {
+            if (e.key === 'Enter') {
+                askCentaraAI();
+            }
+        }
+
+        async function askCentaraAI() {
+            const queryInput = document.getElementById('chatQuery');
+            const responseBox = document.getElementById('chatResponse');
+            const sendBtn = document.getElementById('sendBtn');
+            const question = queryInput.value.trim();
+
+            if (!question) return;
+
+            // Hiển thị trạng thái đang tải
+            sendBtn.disabled = true;
+            sendBtn.innerText = "Đang tra...";
+            responseBox.style.display = "block";
+            responseBox.innerHTML = "Đang tra cứu dữ liệu Sổ tay Centara điện...";
+
+            try {
+                // Thay thế URL dưới đây bằng endpoint Cloudflare Worker của bạn sau khi deploy ở Bước 2
+                const workerUrl = "https://centara-ai-worker.YOUR_SUBDOMAIN.workers.dev"; 
+                
+                const response = await fetch(workerUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt: question })
+                });
+
+                const data = await response.json();
+                responseBox.innerHTML = data.reply || "Không nhận được phản hồi từ hệ thống.";
+            } catch (error) {
+                // Dùng tạm chế độ mô phỏng hoặc thông báo lỗi kết nối nếu Worker chưa kích hoạt
+                responseBox.innerHTML = `[Chế độ xem trước giao diện] Hệ thống ghi nhận câu hỏi: "<b>${question}</b>". Vui lòng cấu hình Cloudflare Worker ở Bước 2 để kết nối API thực tế.`;
+            } finally {
+                sendBtn.disabled = false;
+                sendBtn.innerText = "Tra cứu";
+            }
         }
 
         document.addEventListener("DOMContentLoaded", renderDashboard);
