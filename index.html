@@ -70,13 +70,14 @@
             background: #f0f9ff;
             border-left: 3px solid var(--accent);
             border-radius: 0 6px 6px 0;
-            font-size: 0.85rem;
-            line-height: 1.4;
-            color: #0369a1;
+            font-size: 0.88rem;
+            line-height: 1.5;
+            color: #0f172a;
             display: none;
+            white-space: pre-line;
         }
 
-        /* Thu hẹp khoảng cách lưới (gap) */
+        /* Lưới 9 hệ thống hạ tầng */
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 8px; }
         
         .card { 
@@ -110,22 +111,21 @@
             <p>Centara Resort & Spa Vân Đồn - Dashboard Hệ thống Hạ tầng</p>
         </header>
 
-        <!-- Khung Chat Trực Tiếp Vận Hành Điện Centara -->
+        <!-- Khung Hỏi Đáp Trực Tiếp AI (Sổ tay Centara Điện) -->
         <div class="ai-chat-box">
             <div class="ai-chat-header">
                 <span>⚡</span>
                 <span>Hỏi đáp Nhanh - Sổ tay Centara Điện</span>
             </div>
             <div class="ai-input-group">
-                <input type="text" id="chatQuery" placeholder="Nhập câu hỏi kỹ thuật điện (VD: Sơ đồ tủ DB-A-KT, thông số Busway...)" onkeypress="handleKeyPress(event)" />
+                <input type="text" id="chatQuery" placeholder="Nhập câu hỏi kỹ thuật điện (VD: Hệ thống DDC có bao nhiêu tủ, tủ DB-A-KT...)..." onkeypress="handleKeyPress(event)" />
                 <button onclick="askCentaraAI()" id="sendBtn">Tra cứu</button>
             </div>
             <div id="chatResponse" class="ai-response"></div>
         </div>
 
-        <div class="grid" id="modulesGrid">
-            <!-- Dữ liệu render động -->
-        </div>
+        <!-- 9 Hạng mục hệ thống hạ tầng -->
+        <div class="grid" id="modulesGrid"></div>
 
         <footer>
             Phòng Kỹ thuật - Centara Vân Đồn &copy; 2026
@@ -181,15 +181,15 @@
 
             if (!question) return;
 
-            // Hiển thị trạng thái đang tải
+            // Hiển thị trạng thái đang tra cứu
             sendBtn.disabled = true;
             sendBtn.innerText = "Đang tra...";
             responseBox.style.display = "block";
-            responseBox.innerHTML = "Đang tra cứu dữ liệu Sổ tay Centara điện...";
+            responseBox.innerHTML = "⏳ Đang kết nối hệ thống AI Sổ tay Centara điện...";
 
             try {
-                // Thay thế URL dưới đây bằng endpoint Cloudflare Worker của bạn sau khi deploy ở Bước 2
-                const workerUrl = "https://centara-ai-worker.YOUR_SUBDOMAIN.workers.dev"; 
+                // Kết nối trực tiếp tới Cloudflare Worker Backend
+                const workerUrl = "https://centara-ai-api.vandonstay.workers.dev";
                 
                 const response = await fetch(workerUrl, {
                     method: 'POST',
@@ -200,8 +200,7 @@
                 const data = await response.json();
                 responseBox.innerHTML = data.reply || "Không nhận được phản hồi từ hệ thống.";
             } catch (error) {
-                // Dùng tạm chế độ mô phỏng hoặc thông báo lỗi kết nối nếu Worker chưa kích hoạt
-                responseBox.innerHTML = `[Chế độ xem trước giao diện] Hệ thống ghi nhận câu hỏi: "<b>${question}</b>". Vui lòng cấu hình Cloudflare Worker ở Bước 2 để kết nối API thực tế.`;
+                responseBox.innerHTML = "❌ Lỗi kết nối tới hệ thống AI: " + error.message;
             } finally {
                 sendBtn.disabled = false;
                 sendBtn.innerText = "Tra cứu";
