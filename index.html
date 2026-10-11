@@ -14,78 +14,76 @@
             --border: #e2e8f0;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: var(--bg); color: var(--text); padding: 12px; }
-        header { text-align: center; margin-bottom: 15px; padding: 15px; background: var(--primary); color: white; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        header h1 { font-size: 1.2rem; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.5px; }
-        header p { font-size: 0.75rem; color: #94a3b8; }
+        body { background-color: var(--bg); color: var(--text); padding: 16px; }
+        header { text-align: center; margin-bottom: 20px; padding: 20px; background: var(--primary); color: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        header h1 { font-size: 1.4rem; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+        header p { font-size: 0.85rem; color: #94a3b8; }
         .container { max-width: 1200px; margin: 0 auto; }
         
-        /* Khung hỏi đáp AI ở trên cùng */
-        .ai-chat-box {
+        /* Khung hỏi đáp trực tiếp kết nối NotebookLM */
+        .direct-chat-box {
             background: #ffffff;
             border: 2px solid var(--accent);
             border-radius: 8px;
-            padding: 14px;
-            margin-bottom: 20px;
+            padding: 16px;
+            margin-bottom: 24px;
             box-shadow: 0 4px 6px -1px rgba(2, 132, 199, 0.1);
         }
-        .ai-chat-header {
-            font-size: 0.95rem;
+        .direct-chat-header {
+            font-size: 1rem;
             font-weight: 600;
             color: var(--primary);
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             display: flex;
             align-items: center;
-            gap: 6px;
-        }
-        .ai-input-group {
-            display: flex;
             gap: 8px;
         }
-        .ai-input-group input {
+        .direct-chat-content {
+            font-size: 0.9rem;
+            line-height: 1.6;
+            color: #334155;
+        }
+        .search-input-group {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .search-input-group input {
             flex: 1;
-            padding: 9px 12px;
+            padding: 10px 14px;
             border: 1px solid var(--border);
             border-radius: 6px;
             font-size: 0.9rem;
             outline: none;
+            transition: border-color 0.2s;
         }
-        .ai-input-group input:focus { border-color: var(--accent); }
-        .ai-input-group button {
+        .search-input-group input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1);
+        }
+        .search-input-group button {
             background-color: var(--accent);
             color: white;
             border: none;
-            padding: 0 16px;
+            padding: 0 20px;
             border-radius: 6px;
             font-weight: 600;
             cursor: pointer;
-            font-size: 0.9rem;
             transition: background 0.2s;
         }
-        .ai-input-group button:hover { background-color: #0369a1; }
-        
-        .ai-response {
-            margin-top: 10px;
-            padding: 10px 12px;
-            background: #f0f9ff;
-            border-left: 3px solid var(--accent);
-            border-radius: 0 6px 6px 0;
-            font-size: 0.88rem;
-            line-height: 1.5;
-            color: #0f172a;
-            display: none;
-            white-space: pre-line;
+        .search-input-group button:hover {
+            background-color: #0369a1;
         }
 
         /* Lưới 9 hệ thống hạ tầng */
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 8px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
         
         .card { 
             background: var(--card); 
             border: 1px solid var(--border); 
-            border-radius: 6px; 
-            padding: 12px 15px; 
-            box-shadow: 0 1px 2px rgba(0,0,0,0.02); 
+            border-radius: 8px; 
+            padding: 16px 18px; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02); 
             transition: all 0.2s ease; 
             display: flex; 
             align-items: center; 
@@ -93,15 +91,15 @@
         }
         .card:hover { 
             border-color: var(--accent); 
-            box-shadow: 0 4px 8px -2px rgba(2, 132, 199, 0.1); 
-            transform: translateY(-1px);
+            box-shadow: 0 6px 12px -2px rgba(2, 132, 199, 0.15); 
+            transform: translateY(-2px);
             background: #f0f9ff;
         }
         
-        .card-title { color: var(--primary); font-size: 0.95rem; font-weight: 600; display: flex; align-items: center; gap: 8px; width: 100%; }
+        .card-title { color: var(--primary); font-size: 1rem; font-weight: 600; display: flex; align-items: center; gap: 10px; width: 100%; }
         .card:hover .card-title { color: var(--accent); }
         
-        footer { text-align: center; margin-top: 20px; font-size: 0.7rem; color: #94a3b8; border-top: 1px solid var(--border); padding-top: 10px; }
+        footer { text-align: center; margin-top: 30px; font-size: 0.75rem; color: #94a3b8; border-top: 1px solid var(--border); padding-top: 15px; }
     </style>
 </head>
 <body>
@@ -111,17 +109,22 @@
             <p>Centara Resort & Spa Vân Đồn - Dashboard Hệ thống Hạ tầng</p>
         </header>
 
-        <!-- Khung Hỏi Đáp Trực Tiếp AI (Sổ tay Centara Điện) -->
-        <div class="ai-chat-box">
-            <div class="ai-chat-header">
+        <!-- Khung tra cứu nhanh dẫn thẳng vào NotebookLM Centara điện -->
+        <div class="direct-chat-box">
+            <div class="direct-chat-header">
                 <span>⚡</span>
-                <span>Hỏi đáp Nhanh - Sổ tay Centara Điện</span>
+                <span>Hỏi đáp Nhanh - Sổ tay Centara Điện & Hạ tầng</span>
             </div>
-            <div class="ai-input-group">
-                <input type="text" id="chatQuery" placeholder="Nhập câu hỏi kỹ thuật điện (VD: Hệ thống DDC có bao nhiêu tủ, tủ DB-A-KT...)..." onkeypress="handleKeyPress(event)" />
-                <button onclick="askCentaraAI()" id="sendBtn">Tra cứu</button>
+            <div class="direct-chat-content">
+                Nhập câu hỏi kỹ thuật điện để tra cứu trực tiếp từ kho tri thức chuyên sâu trên NotebookLM:
+                <div class="search-input-group">
+                    <input type="text" id="chatQueryInput" placeholder="Nhập câu hỏi kỹ thuật điện (VD: Hệ thống DDC có bao nhiêu tủ, tủ DB-A-KT...)..." onkeypress="handleSearchKeyPress(event)">
+                    <button type="button" onclick="openNotebookLMQuery()">Tra cứu</button>
+                </div>
+                <div style="margin-top: 8px; font-size: 0.8rem; color: #64748b;">
+                    🔗 Dữ liệu liên kết trực tiếp từ sổ tay <b>Centara điện</b>. <a href="https://notebook.google.com/notebook/8e9c3bca-7543-415b-9881-c187f155178a" target="_blank" style="color: var(--accent); text-decoration: none; font-weight: 600;">Mở trực tiếp NotebookLM ↗</a>
+                </div>
             </div>
-            <div id="chatResponse" class="ai-response"></div>
         </div>
 
         <!-- 9 Hạng mục hệ thống hạ tầng -->
@@ -159,7 +162,7 @@
 
                 card.innerHTML = `
                     <div class="card-title">
-                        <span style="font-size: 1.2rem;">${sys.icon}</span>
+                        <span style="font-size: 1.3rem;">${sys.icon}</span>
                         <span>${sys.id}. ${sys.name}</span>
                     </div>
                 `;
@@ -167,43 +170,17 @@
             });
         }
 
-        function handleKeyPress(e) {
-            if (e.key === 'Enter') {
-                askCentaraAI();
-            }
+        function openNotebookLMQuery() {
+            const queryInput = document.getElementById("chatQueryInput");
+            const notebookUrl = "https://notebook.google.com/notebook/8e9c3bca-7543-415b-9881-c187f155178a";
+            
+            // Mở tab mới tới NotebookLM Centara điện
+            window.open(notebookUrl, "_blank");
         }
 
-        async function askCentaraAI() {
-            const queryInput = document.getElementById('chatQuery');
-            const responseBox = document.getElementById('chatResponse');
-            const sendBtn = document.getElementById('sendBtn');
-            const question = queryInput.value.trim();
-
-            if (!question) return;
-
-            // Hiển thị trạng thái đang tra cứu
-            sendBtn.disabled = true;
-            sendBtn.innerText = "Đang tra...";
-            responseBox.style.display = "block";
-            responseBox.innerHTML = "⏳ Đang kết nối hệ thống AI Sổ tay Centara điện...";
-
-            try {
-                // Kết nối trực tiếp tới Cloudflare Worker Backend
-                const workerUrl = "https://centara-ai-api.vandonstay.workers.dev";
-                
-                const response = await fetch(workerUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ prompt: question })
-                });
-
-                const data = await response.json();
-                responseBox.innerHTML = data.reply || "Không nhận được phản hồi từ hệ thống.";
-            } catch (error) {
-                responseBox.innerHTML = "❌ Lỗi kết nối tới hệ thống AI: " + error.message;
-            } finally {
-                sendBtn.disabled = false;
-                sendBtn.innerText = "Tra cứu";
+        function handleSearchKeyPress(event) {
+            if (event.key === "Enter") {
+                openNotebookLMQuery();
             }
         }
 
