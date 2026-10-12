@@ -34,7 +34,8 @@
         th { background: #f1f5f9; color: var(--primary); position: sticky; top: 0; z-index: 10; }
         tr:hover { background: #f8fafc; }
 
-        .media-triggers { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 5px; }
+        /* Giao diện 2 nút xem gọn gàng */
+        .media-triggers { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 5px; align-items: center; }
         .media-btn { background: var(--accent); color: white; border: none; padding: 8px 14px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s; }
         .media-btn:hover { background: #0369a1; }
         .media-btn:disabled { background: #94a3b8; cursor: not-allowed; }
@@ -58,7 +59,7 @@
 <body>
     <div class="container">
         <header>
-            <h1>Hệ thống Nước nóng</h1>
+            <h1>Hệ thống Nước nóng sinh hoạt</h1>
             <a href="../index.html" class="back-btn">← Dashboard</a>
         </header>
 
@@ -78,7 +79,9 @@
         <div class="section">
             <h2>2. Tài liệu trực quan & Video vận hành</h2>
             <div class="media-triggers">
-                <button class="media-btn" id="imgBtn" onclick="openImageModal()" disabled>📁 Đang quét Sơ đồ / Ảnh...</button>
+                <!-- Nút xem ảnh -->
+                <button class="media-btn" id="imgBtn" onclick="openImageModal()" disabled>📁 Đang quét Ảnh...</button>
+                <!-- Nút xem video -->
                 <button class="media-btn" id="vidBtn" onclick="openVideoModal()" disabled>🎬 Đang quét Video...</button>
             </div>
         </div>
@@ -130,12 +133,13 @@
             }
         }
 
-        // Tối ưu hàm quét ảnh/video chạy mượt mà khi xem online
         async function scanMediaFiles() {
+            availableImages = [];
+            availableVideos = [];
+
             let imgExtensions = ['jpg', 'jpeg', 'png', 'webp'];
             let vidExtensions = ['mp4', 'webm', 'ogg', 'mov'];
 
-            // Quét tối đa 20 file ảnh theo thứ tự 1, 2, 3...
             for (let i = 1; i <= 20; i++) {
                 let found = false;
                 for (let ext of imgExtensions) {
@@ -152,10 +156,9 @@
                         break;
                     }
                 }
-                if (!found && i > 3) break;
+                if (!found && i > 2) break;
             }
 
-            // Quét tối đa 20 file video theo thứ tự 1, 2, 3...
             for (let j = 1; j <= 20; j++) {
                 let found = false;
                 for (let ext of vidExtensions) {
@@ -172,23 +175,25 @@
                         break;
                     }
                 }
-                if (!found && j > 3) break;
+                if (!found && j > 2) break;
             }
 
             let imgBtn = document.getElementById('imgBtn');
             if (availableImages.length > 0) {
-                imgBtn.innerHTML = `📁 Xem Sơ đồ / Ảnh hệ thống (${availableImages.length})`;
+                imgBtn.innerHTML = `📁 Xem Ảnh (${availableImages.length})`;
                 imgBtn.disabled = false;
             } else {
-                imgBtn.innerHTML = `📁 Không có ảnh trong thư mục`;
+                imgBtn.innerHTML = `📁 Không có ảnh`;
+                imgBtn.disabled = true;
             }
 
             let vidBtn = document.getElementById('vidBtn');
             if (availableVideos.length > 0) {
-                vidBtn.innerHTML = `🎬 Xem Video Vận Hành (${availableVideos.length})`;
+                vidBtn.innerHTML = `🎬 Xem Video (${availableVideos.length})`;
                 vidBtn.disabled = false;
             } else {
-                vidBtn.innerHTML = `🎬 Không có video trong thư mục`;
+                vidBtn.innerHTML = `🎬 Không có video`;
+                vidBtn.disabled = true;
             }
         }
 
