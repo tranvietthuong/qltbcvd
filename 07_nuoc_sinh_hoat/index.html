@@ -65,7 +65,6 @@
         <div class="section">
             <div class="section-header">
                 <h2>1. Thông số thiết bị & Danh mục Van khóa</h2>
-                <!-- Nút gọi hàm bảo mật mở đúng link Google Sheet 07 -->
                 <button onclick="requestEditSheet()" class="edit-sheet-btn">
                     ✏️ Sửa dữ liệu trên Google Sheets
                 </button>
@@ -113,9 +112,7 @@
     </div>
 
     <script>
-        // Link export dữ liệu sheet 07 chính xác
         const SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1B_60aidTK_jjEolUTl-5879NsRFU7H3QDk-IRSShNzE/export?format=xlsx";
-        // Link trực tiếp mở file Google Sheet 07 để sửa
         const SHEET_EDIT_URL = "https://docs.google.com/spreadsheets/d/1B_60aidTK_jjEolUTl-5879NsRFU7H3QDk-IRSShNzE/edit?usp=sharing";
         
         let parsedSections = [];
@@ -124,7 +121,6 @@
         let availableVideos = [];
         let currentVidIdx = 0;
 
-        // Hàm yêu cầu nhập mật khẩu bảo vệ để mở trực tiếp file 07
         function requestEditSheet() {
             let pass = prompt("Nhập mật khẩu chỉnh sửa:");
             if (pass === "1") {
@@ -134,49 +130,49 @@
             }
         }
 
-        async function checkFileExists(url) {
-            try {
-                let response = await fetch(url, { method: 'HEAD' });
-                if (response.ok) return true;
-                let getRes = await fetch(url);
-                return getRes.ok;
-            } catch {
-                return false;
-            }
-        }
-
+        // Tối ưu hóa hàm quét media tương thích hoàn hảo khi xem online
         async function scanMediaFiles() {
             let imgExtensions = ['jpg', 'jpeg', 'png', 'webp'];
             let vidExtensions = ['mp4', 'webm', 'ogg', 'mov'];
 
-            let i = 1;
-            while (true) {
+            // Quét tối đa 20 file ảnh theo thứ tự 1, 2, 3...
+            for (let i = 1; i <= 20; i++) {
                 let found = false;
                 for (let ext of imgExtensions) {
                     let path = `image/${i}.${ext}`;
-                    if (await checkFileExists(path)) {
+                    let loaded = await new Promise((resolve) => {
+                        let img = new Image();
+                        img.onload = () => resolve(true);
+                        img.onerror = () => resolve(false);
+                        img.src = path;
+                    });
+                    if (loaded) {
                         availableImages.push(path);
                         found = true;
                         break;
                     }
                 }
-                if (!found) break;
-                i++;
+                if (!found && i > 3) break;
             }
 
-            let j = 1;
-            while (true) {
+            // Quét tối đa 20 file video theo thứ tự 1, 2, 3...
+            for (let j = 1; j <= 20; j++) {
                 let found = false;
                 for (let ext of vidExtensions) {
                     let path = `video/${j}.${ext}`;
-                    if (await checkFileExists(path)) {
+                    let loaded = await new Promise((resolve) => {
+                        let vid = document.createElement('video');
+                        vid.onloadedmetadata = () => resolve(true);
+                        vid.onerror = () => resolve(false);
+                        vid.src = path;
+                    });
+                    if (loaded) {
                         availableVideos.push(path);
                         found = true;
                         break;
                     }
                 }
-                if (!found) break;
-                j++;
+                if (!found && j > 3) break;
             }
 
             let imgBtn = document.getElementById('imgBtn');

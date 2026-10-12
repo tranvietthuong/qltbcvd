@@ -65,7 +65,6 @@
         <div class="section">
             <div class="section-header">
                 <h2>1. Thông số thiết bị & Danh mục Hệ thống Điều hòa</h2>
-                <!-- Nút bấm gọi hàm xác thực mật khẩu mở trực tiếp sheet 02 -->
                 <button onclick="requestEditSheet()" class="edit-sheet-btn">
                     ✏️ Sửa dữ liệu trên Google Sheets
                 </button>
@@ -113,9 +112,7 @@
     </div>
 
     <script>
-        // Link export dữ liệu sheet 02
         const SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1IiE2CqpR3O-Kirer_U9qcpMBTOv_UnMGPtDaX6lr84c/export?format=xlsx";
-        // Link trực tiếp mở đúng file Google Sheet 02 để chỉnh sửa
         const SHEET_EDIT_URL = "https://docs.google.com/spreadsheets/d/1IiE2CqpR3O-Kirer_U9qcpMBTOv_UnMGPtDaX6lr84c/edit?usp=sharing";
         
         let parsedSections = [];
@@ -124,7 +121,6 @@
         let availableVideos = [];
         let currentVidIdx = 0;
 
-        // Hàm kiểm tra mật khẩu "1" để mở trực tiếp file 02
         function requestEditSheet() {
             let pass = prompt("Nhập mật khẩu chỉnh sửa:");
             if (pass === "1") {
@@ -134,51 +130,52 @@
             }
         }
 
-        async function checkFileExists(url) {
-            try {
-                let response = await fetch(url, { method: 'HEAD' });
-                if (response.ok) return true;
-                let getRes = await fetch(url);
-                return getRes.ok;
-            } catch {
-                return false;
-            }
-        }
-
+        // Tối ưu hàm quét ảnh/video tương thích hoàn hảo khi xem online (Cloudflare Pages)
         async function scanMediaFiles() {
             let imgExtensions = ['jpg', 'jpeg', 'png', 'webp'];
             let vidExtensions = ['mp4', 'webm', 'ogg', 'mov'];
 
-            let i = 1;
-            while (true) {
+            // Quét tối đa 20 file ảnh theo thứ tự 1, 2, 3...
+            for (let i = 1; i <= 20; i++) {
                 let found = false;
                 for (let ext of imgExtensions) {
                     let path = `image/${i}.${ext}`;
-                    if (await checkFileExists(path)) {
+                    let loaded = await new Promise((resolve) => {
+                        let img = new Image();
+                        img.onload = () => resolve(true);
+                        img.onerror = () => resolve(false);
+                        img.src = path;
+                    });
+                    if (loaded) {
                         availableImages.push(path);
                         found = true;
                         break;
                     }
                 }
-                if (!found) break;
-                i++;
+                if (!found && i > 3) break; // Dừng nếu quét liên tiếp không thấy file
             }
 
-            let j = 1;
-            while (true) {
+            // Quét tối đa 20 file video theo thứ tự 1, 2, 3...
+            for (let j = 1; j <= 20; j++) {
                 let found = false;
                 for (let ext of vidExtensions) {
                     let path = `video/${j}.${ext}`;
-                    if (await checkFileExists(path)) {
+                    let loaded = await new Promise((resolve) => {
+                        let vid = document.createElement('video');
+                        vid.onloadedmetadata = () => resolve(true);
+                        vid.onerror = () => resolve(false);
+                        vid.src = path;
+                    });
+                    if (loaded) {
                         availableVideos.push(path);
                         found = true;
                         break;
                     }
                 }
-                if (!found) break;
-                j++;
+                if (!found && j > 3) break;
             }
 
+            // Cập nhật trạng thái nút ảnh
             let imgBtn = document.getElementById('imgBtn');
             if (availableImages.length > 0) {
                 imgBtn.innerHTML = `📁 Xem Sơ đồ / Ảnh hệ thống (${availableImages.length})`;
@@ -187,6 +184,7 @@
                 imgBtn.innerHTML = `📁 Không có ảnh trong thư mục`;
             }
 
+            // Cập nhật trạng thái nút video
             let vidBtn = document.getElementById('vidBtn');
             if (availableVideos.length > 0) {
                 vidBtn.innerHTML = `🎬 Xem Video Vận Hành (${availableVideos.length})`;
