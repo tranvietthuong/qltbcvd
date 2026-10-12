@@ -3,181 +3,374 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản lý Vận hành Kỹ thuật - Centara Vân Đồn</title>
+    <title>Quản lý Hệ thống Nước sinh hoạt - Centara Vân Đồn</title>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
         :root {
             --primary: #0f172a;
             --accent: #0284c7;
             --bg: #f8fafc;
             --card: #ffffff;
-            --text: #334155;
             --border: #e2e8f0;
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: var(--bg); color: var(--text); padding: 16px; }
-        header { text-align: center; margin-bottom: 20px; padding: 20px; background: var(--primary); color: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        header h1 { font-size: 1.4rem; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
-        header p { font-size: 0.85rem; color: #94a3b8; }
-        .container { max-width: 1200px; margin: 0 auto; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
+        body { background: var(--bg); color: #334155; padding: 10px; }
+        header { display: flex; justify-content: space-between; align-items: center; background: var(--primary); color: white; padding: 10px 12px; border-radius: 6px; margin-bottom: 10px; }
+        header h1 { font-size: 0.95rem; text-transform: uppercase; }
+        .back-btn { text-decoration: none; background: var(--accent); color: white; padding: 5px 10px; border-radius: 4px; font-size: 0.8rem; }
+        .section { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 10px; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
         
-        .direct-chat-box {
-            background: #ffffff;
-            border: 2px solid var(--accent);
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 24px;
-            box-shadow: 0 4px 6px -1px rgba(2, 132, 199, 0.1);
-        }
-        .direct-chat-header {
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--primary);
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .direct-chat-content {
-            font-size: 0.9rem;
-            line-height: 1.6;
-            color: #334155;
-        }
-        .search-input-group {
-            display: flex;
-            gap: 8px;
-            margin-top: 8px;
-        }
-        .search-input-group input {
-            flex: 1;
-            padding: 10px 14px;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            font-size: 0.9rem;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-        .search-input-group input:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1);
-        }
-        .search-input-group button {
-            background-color: var(--accent);
-            color: white;
-            border: none;
-            padding: 0 20px;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .search-input-group button:hover {
-            background-color: #0369a1;
-        }
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px; }
+        h2 { font-size: 0.9rem; color: var(--primary); border-left: 3px solid var(--accent); padding-left: 6px; }
+        
+        .edit-sheet-btn { background: #16a34a; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; transition: background 0.2s; }
+        .edit-sheet-btn:hover { background: #15803d; }
 
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+        h3 { font-size: 0.85rem; margin: 10px 0 5px 0; color: var(--accent); text-transform: uppercase; }
+        .search-box { width: 100%; padding: 7px; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 8px; font-size: 0.85rem; }
+        .table-container { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+        th, td { padding: 6px 8px; text-align: left; border-bottom: 1px solid var(--border); }
+        th { background: #f1f5f9; color: var(--primary); position: sticky; top: 0; z-index: 10; }
+        tr:hover { background: #f8fafc; }
+
+        .media-triggers { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 5px; }
+        .media-btn { background: var(--accent); color: white; border: none; padding: 8px 14px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s; }
+        .media-btn:hover { background: #0369a1; }
+        .media-btn:disabled { background: #94a3b8; cursor: not-allowed; }
+
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; }
+        .overlay.active { display: flex; }
+        .overlay-content { position: relative; max-width: 90%; max-height: 85%; display: flex; justify-content: center; align-items: center; }
+        .overlay-content img, .overlay-content video { max-width: 100%; max-height: 85vh; object-fit: contain; border-radius: 4px; }
         
-        .card { 
-            background: var(--card); 
-            border: 1px solid var(--border); 
-            border-radius: 8px; 
-            padding: 16px 18px; 
-            box-shadow: 0 1px 3px rgba(0,0,0,0.02); 
-            transition: all 0.2s ease; 
-            display: flex; 
-            align-items: center; 
-            cursor: pointer; 
-        }
-        .card:hover { 
-            border-color: var(--accent); 
-            box-shadow: 0 6px 12px -2px rgba(2, 132, 199, 0.15); 
-            transform: translateY(-2px);
-            background: #f0f9ff;
-        }
+        .close-btn { position: absolute; top: 20px; right: 25px; background: rgba(255,255,255,0.2); color: white; border: none; font-size: 1.5rem; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10000; transition: background 0.2s; }
+        .close-btn:hover { background: rgba(255,255,255,0.4); }
         
-        .card-title { color: var(--primary); font-size: 1rem; font-weight: 600; display: flex; align-items: center; gap: 10px; width: 100%; }
-        .card:hover .card-title { color: var(--accent); }
+        .modal-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.2); color: white; border: none; padding: 12px 16px; cursor: pointer; font-size: 1.2rem; border-radius: 4px; z-index: 10000; }
+        .modal-prev { left: 20px; } .modal-next { right: 20px; }
+        .modal-nav.hidden { display: none; }
         
-        footer { text-align: center; margin-top: 30px; font-size: 0.75rem; color: #94a3b8; border-top: 1px solid var(--border); padding-top: 15px; }
+        .modal-counter { color: white; margin-top: 10px; font-size: 0.9rem; font-weight: 600; }
+        footer { text-align: center; font-size: 0.7rem; color: #94a3b8; margin-top: 10px; }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Hệ thống Quản lý Kỹ thuật Khách sạn</h1>
-            <p>Centara Resort & Spa Vân Đồn - Dashboard Hệ thống Hạ tầng</p>
+            <h1>Hệ thống Nước sinh hoạt</h1>
+            <a href="../index.html" class="back-btn">← Dashboard</a>
         </header>
 
-        <div class="direct-chat-box">
-            <div class="direct-chat-header">
-                <span>⚡</span>
-                <span>Hỏi đáp Nhanh - Sổ tay Centara Điện & Hạ tầng</span>
+        <div class="section">
+            <div class="section-header">
+                <h2>1. Thông số thiết bị & Danh mục Van khóa</h2>
+                <!-- Nút gọi hàm bảo mật mở đúng link Google Sheet 07 -->
+                <button onclick="requestEditSheet()" class="edit-sheet-btn">
+                    ✏️ Sửa dữ liệu trên Google Sheets
+                </button>
             </div>
-            <div class="direct-chat-content">
-                Nhập câu hỏi kỹ thuật điện để tra cứu trực tiếp từ kho tri thức chuyên sâu trên NotebookLM:
-                <div class="search-input-group">
-                    <input type="text" id="chatQueryInput" placeholder="Nhập câu hỏi kỹ thuật điện (VD: Hệ thống DDC có bao nhiêu tủ, tủ DB-A-KT...)..." onkeypress="handleSearchKeyPress(event)">
-                    <button type="button" onclick="openNotebookLMQuery()">Tra cứu</button>
-                </div>
-                <div style="margin-top: 8px; font-size: 0.80rem; color: #64748b;">
-                    🔗 Dữ liệu liên kết trực tiếp từ sổ tay <b>Centara điện</b>. <a href="https://notebook.google.com/notebook/8e9c3bca-7543-415b-9881-c187f155178a" target="_blank" style="color: var(--accent); text-decoration: none; font-weight: 600;">Mở trực tiếp NotebookLM ↗</a>
-                </div>
+            <input type="text" id="search" class="search-box" placeholder="🔍 Tìm kiếm mã thiết bị, khu vực, thông số..." onkeyup="filterTables()">
+            <div id="tablesWrapper">
+                <p style="text-align:center; padding: 20px;">Đang tải dữ liệu từ Google Sheet...</p>
             </div>
         </div>
 
-        <div class="grid" id="modulesGrid"></div>
+        <div class="section">
+            <h2>2. Tài liệu trực quan & Video vận hành</h2>
+            <div class="media-triggers">
+                <button class="media-btn" id="imgBtn" onclick="openImageModal()" disabled>📁 Đang quét Sơ đồ / Ảnh...</button>
+                <button class="media-btn" id="vidBtn" onclick="openVideoModal()" disabled>🎬 Đang quét Video...</button>
+            </div>
+        </div>
 
-        <footer>
-            Phòng Kỹ thuật - Centara Vân Đồn &copy; 2026
-        </footer>
+        <footer>Phòng Kỹ thuật - Centara Vân Đồn &copy; 2026</footer>
+    </div>
+
+    <!-- MODAL ẢNH -->
+    <div id="imageModal" class="overlay">
+        <button class="close-btn" onclick="closeModal('imageModal')">&times;</button>
+        <button id="imgPrevBtn" class="modal-nav modal-prev" onclick="moveModalSlide(-1)">&#10094;</button>
+        <div class="overlay-content">
+            <img id="modalImg" src="" alt="Sơ đồ hệ thống">
+        </div>
+        <button id="imgNextBtn" class="modal-nav modal-next" onclick="moveModalSlide(1)">&#10095;</button>
+        <div class="modal-counter" id="modalCounter">1 / 1</div>
+    </div>
+
+    <!-- MODAL VIDEO -->
+    <div id="videoModal" class="overlay">
+        <button class="close-btn" onclick="closeModal('videoModal')">&times;</button>
+        <button id="vidPrevBtn" class="modal-nav modal-prev" onclick="moveVideoSlide(-1)">&#10094;</button>
+        <div class="overlay-content">
+            <video id="modalVideo" controls>
+                <source id="modalVideoSrc" src="" type="video/mp4">
+                Trình duyệt của bạn không hỗ trợ video.
+            </video>
+        </div>
+        <button id="vidNextBtn" class="modal-nav modal-next" onclick="moveVideoSlide(1)">&#10095;</button>
+        <div class="modal-counter" id="vidCounter">1 / 1</div>
     </div>
 
     <script>
-        // Danh mục chuẩn 9 hệ thống hạ tầng với thư mục mục 07 đã khớp chính xác
-        const systems = [
-            { id: "01", folder: "01_chiller", icon: "❄️", name: "Hệ thống Chiller" },
-            { id: "02", folder: "02_dieu_hoa", icon: "🌀", name: "Hệ thống Điều hòa không khí" },
-            { id: "03", folder: "03_pccc_duong_ong", icon: "🚒", name: "Đường ống nước PCCC" },
-            { id: "04", folder: "04_pccc_thong_gio", icon: "💨", name: "Thông gió & Hút khói PCCC" },
-            { id: "05", folder: "05_hut_mui", icon: "🍳", name: "Hệ thống Hút mùi bếp" },
-            { id: "06", folder: "06_nuoc_nong", icon: "♨️", name: "Nước nóng sinh hoạt" },
-            { id: "07", folder: "07_nuoc_sinh_hoat", icon: "💧", name: "Nước lạnh sinh hoạt" },
-            { id: "08", folder: "08_am_thanh", icon: "🔊", name: "Hệ thống Âm thanh" },
-            { id: "09", folder: "09_loc_nuoc_thai", icon: "♻️", name: "Hệ thống Lọc nước thải" }
-        ];
+        // Link export dữ liệu sheet 07 chính xác
+        const SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1B_60aidTK_jjEolUTl-5879NsRFU7H3QDk-IRSShNzE/export?format=xlsx";
+        // Link trực tiếp mở file Google Sheet 07 để sửa
+        const SHEET_EDIT_URL = "https://docs.google.com/spreadsheets/d/1B_60aidTK_jjEolUTl-5879NsRFU7H3QDk-IRSShNzE/edit?usp=sharing";
+        
+        let parsedSections = [];
+        let availableImages = [];
+        let currentImgIdx = 0;
+        let availableVideos = [];
+        let currentVidIdx = 0;
 
-        function renderDashboard() {
-            const grid = document.getElementById("modulesGrid");
-            grid.innerHTML = "";
-
-            systems.forEach(sys => {
-                const card = document.createElement("div");
-                card.className = "card";
-                card.onclick = () => {
-                    window.location.href = `./${sys.folder}/index.html`;
-                };
-
-                card.innerHTML = `
-                    <div class="card-title">
-                        <span style="font-size: 1.3rem;">${sys.icon}</span>
-                        <span>${sys.id}. ${sys.name}</span>
-                    </div>
-                `;
-                grid.appendChild(card);
-            });
-        }
-
-        function openNotebookLMQuery() {
-            const notebookUrl = "https://notebook.google.com/notebook/8e9c3bca-7543-415b-9881-c187f155178a";
-            window.open(notebookUrl, "_blank");
-        }
-
-        function handleSearchKeyPress(event) {
-            if (event.key === "Enter") {
-                openNotebookLMQuery();
+        // Hàm yêu cầu nhập mật khẩu bảo vệ để mở trực tiếp file 07
+        function requestEditSheet() {
+            let pass = prompt("Nhập mật khẩu chỉnh sửa:");
+            if (pass === "1") {
+                window.open(SHEET_EDIT_URL, '_blank');
+            } else if (pass !== null) {
+                alert("Sai mật khẩu! Bạn không có quyền chỉnh sửa.");
             }
         }
 
-        document.addEventListener("DOMContentLoaded", renderDashboard);
+        async function checkFileExists(url) {
+            try {
+                let response = await fetch(url, { method: 'HEAD' });
+                if (response.ok) return true;
+                let getRes = await fetch(url);
+                return getRes.ok;
+            } catch {
+                return false;
+            }
+        }
+
+        async function scanMediaFiles() {
+            let imgExtensions = ['jpg', 'jpeg', 'png', 'webp'];
+            let vidExtensions = ['mp4', 'webm', 'ogg', 'mov'];
+
+            let i = 1;
+            while (true) {
+                let found = false;
+                for (let ext of imgExtensions) {
+                    let path = `image/${i}.${ext}`;
+                    if (await checkFileExists(path)) {
+                        availableImages.push(path);
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) break;
+                i++;
+            }
+
+            let j = 1;
+            while (true) {
+                let found = false;
+                for (let ext of vidExtensions) {
+                    let path = `video/${j}.${ext}`;
+                    if (await checkFileExists(path)) {
+                        availableVideos.push(path);
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) break;
+                j++;
+            }
+
+            let imgBtn = document.getElementById('imgBtn');
+            if (availableImages.length > 0) {
+                imgBtn.innerHTML = `📁 Xem Sơ đồ / Ảnh hệ thống (${availableImages.length})`;
+                imgBtn.disabled = false;
+            } else {
+                imgBtn.innerHTML = `📁 Không có ảnh trong thư mục`;
+            }
+
+            let vidBtn = document.getElementById('vidBtn');
+            if (availableVideos.length > 0) {
+                vidBtn.innerHTML = `🎬 Xem Video Vận Hành (${availableVideos.length})`;
+                vidBtn.disabled = false;
+            } else {
+                vidBtn.innerHTML = `🎬 Không có video trong thư mục`;
+            }
+        }
+
+        async function loadData() {
+            try {
+                let res = await fetch(SPREADSHEET_URL);
+                let buf = await res.arrayBuffer();
+                let wb = XLSX.read(buf, { type: 'array' });
+                
+                let sheetName = wb.SheetNames[0];
+                let sheet = wb.Sheets[sheetName];
+                let rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+                
+                parsedSections = [];
+                let currentSec = { title: "THÔNG TIN CHUNG", headers: [], rows: [] };
+                let isHeaderFound = false;
+
+                rows.forEach((r) => {
+                    if (!r || r.length === 0 || r.every(cell => !cell)) return;
+                    let firstCell = String(r[0] || '').trim();
+                    
+                    if (r.length <= 2 && isNaN(firstCell) && firstCell !== '') {
+                        if (currentSec.rows.length > 0 || currentSec.headers.length > 0) {
+                            parsedSections.push(currentSec);
+                        }
+                        currentSec = { title: firstCell, headers: [], rows: [] };
+                        isHeaderFound = false;
+                        return;
+                    }
+
+                    if (!isHeaderFound && (firstCell.toLowerCase().includes('stt') || firstCell.toLowerCase().includes('mã') || firstCell.toLowerCase().includes('tên'))) {
+                        currentSec.headers = r.map(c => String(c || '').trim());
+                        isHeaderFound = true;
+                        return;
+                    }
+
+                    if (isHeaderFound) {
+                        currentSec.rows.push(r);
+                    } else {
+                        if (currentSec.headers.length === 0) {
+                            currentSec.headers = r.map((_, idx) => `Cột ${idx + 1}`);
+                        }
+                        currentSec.rows.push(r);
+                    }
+                });
+
+                if (currentSec.rows.length > 0) {
+                    parsedSections.push(currentSec);
+                }
+
+                renderTables(parsedSections);
+            } catch (err) {
+                console.error(err);
+                document.getElementById('tablesWrapper').innerHTML = '<p style="text-align:center; color:red;">Không thể tải dữ liệu từ Google Sheet. Vui lòng kiểm tra lại quyền chia sẻ.</p>';
+            }
+        }
+
+        function renderTables(sections) {
+            let wrapper = document.getElementById('tablesWrapper');
+            if (!sections || sections.length === 0) {
+                wrapper.innerHTML = '<p style="text-align:center;">Không có dữ liệu hiển thị.</p>';
+                return;
+            }
+
+            let html = '';
+            sections.forEach((sec) => {
+                html += `<h3>${sec.title}</h3>`;
+                html += `<div class="table-container"><table>`;
+                
+                if (sec.headers && sec.headers.length > 0) {
+                    html += `<thead><tr>`;
+                    sec.headers.forEach(h => html += `<th>${h}</th>`);
+                    html += `</tr></thead>`;
+                }
+                
+                html += `<tbody>`;
+                sec.rows.forEach(row => {
+                    html += `<tr>`;
+                    let maxCols = sec.headers.length || row.length;
+                    for (let i = 0; i < maxCols; i++) {
+                        let val = row[i] !== undefined ? row[i] : '';
+                        html += `<td>${val}</td>`;
+                    }
+                    html += `</tr>`;
+                });
+                html += `</tbody></table></div>`;
+            });
+
+            wrapper.innerHTML = html;
+        }
+
+        function filterTables() {
+            let keyword = document.getElementById('search').value.toLowerCase();
+            let tables = document.querySelectorAll('.table-container table');
+            
+            tables.forEach(table => {
+                let trs = table.querySelectorAll('tbody tr');
+                trs.forEach(tr => {
+                    let text = tr.innerText.toLowerCase();
+                    tr.style.display = text.includes(keyword) ? '' : 'none';
+                });
+            });
+        }
+
+        function openImageModal() {
+            if (availableImages.length === 0) return;
+            currentImgIdx = 0;
+            updateModalImage();
+            document.getElementById('imageModal').classList.add('active');
+        }
+
+        function updateModalImage() {
+            let img = document.getElementById('modalImg');
+            img.src = availableImages[currentImgIdx];
+            document.getElementById('modalCounter').innerText = `${currentImgIdx + 1} / ${availableImages.length}`;
+            
+            let prevBtn = document.getElementById('imgPrevBtn');
+            let nextBtn = document.getElementById('imgNextBtn');
+            if (availableImages.length <= 1) {
+                prevBtn.classList.add('hidden');
+                nextBtn.classList.add('hidden');
+            } else {
+                prevBtn.classList.remove('hidden');
+                nextBtn.classList.remove('hidden');
+            }
+        }
+
+        function moveModalSlide(step) {
+            currentImgIdx += step;
+            if (currentImgIdx < 0) currentImgIdx = availableImages.length - 1;
+            if (currentImgIdx >= availableImages.length) currentImgIdx = 0;
+            updateModalImage();
+        }
+
+        function openVideoModal() {
+            if (availableVideos.length === 0) return;
+            currentVidIdx = 0;
+            updateModalVideo();
+            document.getElementById('videoModal').classList.add('active');
+        }
+
+        function updateModalVideo() {
+            let video = document.getElementById('modalVideo');
+            let source = document.getElementById('modalVideoSrc');
+            source.src = availableVideos[currentVidIdx];
+            video.load();
+            video.play();
+            document.getElementById('vidCounter').innerText = `${currentVidIdx + 1} / ${availableVideos.length}`;
+
+            let prevBtn = document.getElementById('vidPrevBtn');
+            let nextBtn = document.getElementById('vidNextBtn');
+            if (availableVideos.length <= 1) {
+                prevBtn.classList.add('hidden');
+                nextBtn.classList.add('hidden');
+            } else {
+                prevBtn.classList.remove('hidden');
+                nextBtn.classList.remove('hidden');
+            }
+        }
+
+        function moveVideoSlide(step) {
+            currentVidIdx += step;
+            if (currentVidIdx < 0) currentVidIdx = availableVideos.length - 1;
+            if (currentVidIdx >= availableVideos.length) currentVidIdx = 0;
+            updateModalVideo();
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+            if (modalId === 'videoModal') {
+                let video = document.getElementById('modalVideo');
+                video.pause();
+                video.currentTime = 0;
+            }
+        }
+
+        scanMediaFiles();
+        loadData();
     </script>
 </body>
 </html>
