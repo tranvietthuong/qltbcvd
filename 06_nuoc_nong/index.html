@@ -19,18 +19,26 @@
         header h1 { font-size: 0.95rem; text-transform: uppercase; }
         .back-btn { text-decoration: none; background: var(--accent); color: white; padding: 5px 10px; border-radius: 4px; font-size: 0.8rem; }
         .section { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 10px; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
-        h2 { font-size: 0.9rem; margin-bottom: 8px; color: var(--primary); border-left: 3px solid var(--accent); padding-left: 6px; }
+        
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px; }
+        h2 { font-size: 0.9rem; color: var(--primary); border-left: 3px solid var(--accent); padding-left: 6px; }
+        
+        /* Đổi thẻ a thành button để chạy hàm kiểm tra pass */
+        .edit-sheet-btn { background: #16a34a; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; transition: background 0.2s; }
+        .edit-sheet-btn:hover { background: #15803d; }
+
         h3 { font-size: 0.85rem; margin: 10px 0 5px 0; color: var(--accent); text-transform: uppercase; }
         .search-box { width: 100%; padding: 7px; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 8px; font-size: 0.85rem; }
         .table-container { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 10px; }
         table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
-        th, td { padding: 5px 6px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
+        th, td { padding: 6px 8px; text-align: left; border-bottom: 1px solid var(--border); }
         th { background: #f1f5f9; color: var(--primary); position: sticky; top: 0; z-index: 10; }
         tr:hover { background: #f8fafc; }
 
         .media-triggers { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 5px; }
         .media-btn { background: var(--accent); color: white; border: none; padding: 8px 14px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s; }
         .media-btn:hover { background: #0369a1; }
+        .media-btn:disabled { background: #94a3b8; cursor: not-allowed; }
 
         .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; }
         .overlay.active { display: flex; }
@@ -39,33 +47,41 @@
         
         .close-btn { position: absolute; top: 20px; right: 25px; background: rgba(255,255,255,0.2); color: white; border: none; font-size: 1.5rem; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10000; transition: background 0.2s; }
         .close-btn:hover { background: rgba(255,255,255,0.4); }
+        
         .modal-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.2); color: white; border: none; padding: 12px 16px; cursor: pointer; font-size: 1.2rem; border-radius: 4px; z-index: 10000; }
         .modal-prev { left: 20px; } .modal-next { right: 20px; }
+        .modal-nav.hidden { display: none; }
+        
         .modal-counter { color: white; margin-top: 10px; font-size: 0.9rem; font-weight: 600; }
-
         footer { text-align: center; font-size: 0.7rem; color: #94a3b8; margin-top: 10px; }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Quản lý Hệ thống Nước nóng</h1>
+            <h1>Hệ thống Nước nóng</h1>
             <a href="../index.html" class="back-btn">← Dashboard</a>
         </header>
 
         <div class="section">
-            <h2>1. Thông số thiết bị & Van khóa (Sheet 06)</h2>
-            <input type="text" id="search" class="search-box" placeholder="🔍 Tìm kiếm mã thiết bị, khu vực..." onkeyup="filterTables()">
+            <div class="section-header">
+                <h2>1. Thông số thiết bị & Danh mục Van khóa</h2>
+                <!-- Nút bấm gọi hàm kiểm tra mật khẩu -->
+                <button onclick="requestEditSheet()" class="edit-sheet-btn">
+                    ✏️ Sửa dữ liệu trên Google Sheets
+                </button>
+            </div>
+            <input type="text" id="search" class="search-box" placeholder="🔍 Tìm kiếm mã thiết bị, khu vực, thông số..." onkeyup="filterTables()">
             <div id="tablesWrapper">
-                <p style="text-align:center;">Đang tải dữ liệu từ Google Sheet (Sheet 06)...</p>
+                <p style="text-align:center; padding: 20px;">Đang tải dữ liệu từ Google Sheet...</p>
             </div>
         </div>
 
         <div class="section">
             <h2>2. Tài liệu trực quan & Video vận hành</h2>
             <div class="media-triggers">
-                <button class="media-btn" onclick="openImageModal()">📁 Xem Sơ đồ / Ảnh hệ thống</button>
-                <button class="media-btn" onclick="openVideoModal()">🎬 Xem Video Vận Hành</button>
+                <button class="media-btn" id="imgBtn" onclick="openImageModal()" disabled>📁 Đang quét Sơ đồ / Ảnh...</button>
+                <button class="media-btn" id="vidBtn" onclick="openVideoModal()" disabled>🎬 Đang quét Video...</button>
             </div>
         </div>
 
@@ -75,29 +91,110 @@
     <!-- MODAL ẢNH -->
     <div id="imageModal" class="overlay">
         <button class="close-btn" onclick="closeModal('imageModal')">&times;</button>
-        <button class="modal-nav modal-prev" onclick="moveModalSlide(-1)">&#10094;</button>
+        <button id="imgPrevBtn" class="modal-nav modal-prev" onclick="moveModalSlide(-1)">&#10094;</button>
         <div class="overlay-content">
-            <img id="modalImg" src="image/1.jpg" alt="Sơ đồ hệ thống" onerror="this.src='image/1.png'">
+            <img id="modalImg" src="" alt="Sơ đồ hệ thống">
         </div>
-        <button class="modal-nav modal-next" onclick="moveModalSlide(1)">&#10095;</button>
-        <div class="modal-counter" id="modalCounter">1 / 3</div>
+        <button id="imgNextBtn" class="modal-nav modal-next" onclick="moveModalSlide(1)">&#10095;</button>
+        <div class="modal-counter" id="modalCounter">1 / 1</div>
     </div>
 
     <!-- MODAL VIDEO -->
     <div id="videoModal" class="overlay">
         <button class="close-btn" onclick="closeModal('videoModal')">&times;</button>
+        <button id="vidPrevBtn" class="modal-nav modal-prev" onclick="moveVideoSlide(-1)">&#10094;</button>
         <div class="overlay-content">
             <video id="modalVideo" controls>
-                <source src="video/1.mp4" type="video/mp4">
+                <source id="modalVideoSrc" src="" type="video/mp4">
+                Trình duyệt của bạn không hỗ trợ video.
             </video>
         </div>
+        <button id="vidNextBtn" class="modal-nav modal-next" onclick="moveVideoSlide(1)">&#10095;</button>
+        <div class="modal-counter" id="vidCounter">1 / 1</div>
     </div>
 
     <script>
-        const SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1LEvn6ad4ZcsYAcI4mu17CAW4MZByVFiqHGM7d/export?format=xlsx";
-        let groupedData = [];
+        const SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1beOsAV5Fo3LtbesC9bDzr6IxskCzLLaPejBSzOAwxsU/export?format=xlsx";
+        const SHEET_EDIT_URL = "https://docs.google.com/spreadsheets/d/1beOsAV5Fo3LtbesC9bDzr6IxskCzLLaPejBSzOAwxsU/edit";
+        let parsedSections = [];
+
+        let availableImages = [];
         let currentImgIdx = 0;
-        let totalImages = 3;
+
+        let availableVideos = [];
+        let currentVidIdx = 0;
+
+        // Hàm yêu cầu nhập mật khẩu bảo vệ
+        function requestEditSheet() {
+            let pass = prompt("Nhập mật khẩu chỉnh sửa:");
+            if (pass === "1") {
+                window.open(SHEET_EDIT_URL, '_blank');
+            } else if (pass !== null) {
+                alert("Sai mật khẩu! Bạn không có quyền chỉnh sửa.");
+            }
+        }
+
+        async function checkFileExists(url) {
+            try {
+                let response = await fetch(url, { method: 'HEAD' });
+                if (response.ok) return true;
+                let getRes = await fetch(url);
+                return getRes.ok;
+            } catch {
+                return false;
+            }
+        }
+
+        async function scanMediaFiles() {
+            let imgExtensions = ['jpg', 'jpeg', 'png', 'webp'];
+            let vidExtensions = ['mp4', 'webm', 'ogg', 'mov'];
+
+            let i = 1;
+            while (true) {
+                let found = false;
+                for (let ext of imgExtensions) {
+                    let path = `image/${i}.${ext}`;
+                    if (await checkFileExists(path)) {
+                        availableImages.push(path);
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) break;
+                i++;
+            }
+
+            let j = 1;
+            while (true) {
+                let found = false;
+                for (let ext of vidExtensions) {
+                    let path = `video/${j}.${ext}`;
+                    if (await checkFileExists(path)) {
+                        availableVideos.push(path);
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) break;
+                j++;
+            }
+
+            let imgBtn = document.getElementById('imgBtn');
+            if (availableImages.length > 0) {
+                imgBtn.innerHTML = `📁 Xem Sơ đồ / Ảnh hệ thống (${availableImages.length})`;
+                imgBtn.disabled = false;
+            } else {
+                imgBtn.innerHTML = `📁 Không có ảnh trong thư mục`;
+            }
+
+            let vidBtn = document.getElementById('vidBtn');
+            if (availableVideos.length > 0) {
+                vidBtn.innerHTML = `🎬 Xem Video Vận Hành (${availableVideos.length})`;
+                vidBtn.disabled = false;
+            } else {
+                vidBtn.innerHTML = `🎬 Không có video trong thư mục`;
+            }
+        }
 
         async function loadData() {
             try {
@@ -105,25 +202,175 @@
                 let buf = await res.arrayBuffer();
                 let wb = XLSX.read(buf, { type: 'array' });
                 
-                // Lấy chính xác Sheet "06"
-                let sheet = wb.Sheets["06"] || wb.Sheets[wb.SheetNames[5]];
+                let sheetName = wb.SheetNames[0];
+                let sheet = wb.Sheets[sheetName];
                 let rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
                 
-                groupedData = [];
-                let currentGroup = { title: "THÔNG TIN CHUNG", rows: [] };
-                
+                parsedSections = [];
+                let currentSec = { title: "THÔNG TIN CHUNG", headers: [], rows: [] };
+                let isHeaderFound = false;
+
                 rows.forEach((r) => {
-                    let colA = r[0] !== undefined ? String(r[0]).trim() : "";
-                    let colB = r[1] !== undefined ? String(r[1]).trim() : "";
+                    if (!r || r.length === 0 || r.every(cell => !cell)) return;
+                    let firstCell = String(r[0] || '').trim();
                     
-                    if (colA !== "" && isNaN(colA) && colB === "") {
-                        if (currentGroup.rows.length > 0) {
-                            groupedData.push(currentGroup);
+                    if (r.length <= 2 && isNaN(firstCell) && firstCell !== '') {
+                        if (currentSec.rows.length > 0 || currentSec.headers.length > 0) {
+                            parsedSections.push(currentSec);
                         }
-                        currentGroup = { title: colA, rows: [] };
-                    } else if (!isNaN(colA) && colA !== "") {
-                        currentGroup.rows.push({
-                            stt: colA,
-                            ma_tb: r[1] || '',
-                            khu_vuc: r[2] || '',
-                            ghi_chu: r[3] ||
+                        currentSec = { title: firstCell, headers: [], rows: [] };
+                        isHeaderFound = false;
+                        return;
+                    }
+
+                    if (!isHeaderFound && (firstCell.toLowerCase().includes('stt') || firstCell.toLowerCase().includes('mã') || firstCell.toLowerCase().includes('tên'))) {
+                        currentSec.headers = r.map(c => String(c || '').trim());
+                        isHeaderFound = true;
+                        return;
+                    }
+
+                    if (isHeaderFound) {
+                        currentSec.rows.push(r);
+                    } else {
+                        if (currentSec.headers.length === 0) {
+                            currentSec.headers = r.map((_, idx) => `Cột ${idx + 1}`);
+                        }
+                        currentSec.rows.push(r);
+                    }
+                });
+
+                if (currentSec.rows.length > 0) {
+                    parsedSections.push(currentSec);
+                }
+
+                renderTables(parsedSections);
+            } catch (err) {
+                console.error(err);
+                document.getElementById('tablesWrapper').innerHTML = '<p style="text-align:center; color:red;">Không thể tải dữ liệu từ Google Sheet. Vui lòng kiểm tra lại quyền chia sẻ.</p>';
+            }
+        }
+
+        function renderTables(sections) {
+            let wrapper = document.getElementById('tablesWrapper');
+            if (!sections || sections.length === 0) {
+                wrapper.innerHTML = '<p style="text-align:center;">Không có dữ liệu hiển thị.</p>';
+                return;
+            }
+
+            let html = '';
+            sections.forEach((sec) => {
+                html += `<h3>${sec.title}</h3>`;
+                html += `<div class="table-container"><table>`;
+                
+                if (sec.headers && sec.headers.length > 0) {
+                    html += `<thead><tr>`;
+                    sec.headers.forEach(h => html += `<th>${h}</th>`);
+                    html += `</tr></thead>`;
+                }
+                
+                html += `<tbody>`;
+                sec.rows.forEach(row => {
+                    html += `<tr>`;
+                    let maxCols = sec.headers.length || row.length;
+                    for (let i = 0; i < maxCols; i++) {
+                        let val = row[i] !== undefined ? row[i] : '';
+                        html += `<td>${val}</td>`;
+                    }
+                    html += `</tr>`;
+                });
+                html += `</tbody></table></div>`;
+            });
+
+            wrapper.innerHTML = html;
+        }
+
+        function filterTables() {
+            let keyword = document.getElementById('search').value.toLowerCase();
+            let tables = document.querySelectorAll('.table-container table');
+            
+            tables.forEach(table => {
+                let trs = table.querySelectorAll('tbody tr');
+                trs.forEach(tr => {
+                    let text = tr.innerText.toLowerCase();
+                    tr.style.display = text.includes(keyword) ? '' : 'none';
+                });
+            });
+        }
+
+        function openImageModal() {
+            if (availableImages.length === 0) return;
+            currentImgIdx = 0;
+            updateModalImage();
+            document.getElementById('imageModal').classList.add('active');
+        }
+
+        function updateModalImage() {
+            let img = document.getElementById('modalImg');
+            img.src = availableImages[currentImgIdx];
+            document.getElementById('modalCounter').innerText = `${currentImgIdx + 1} / ${availableImages.length}`;
+            
+            let prevBtn = document.getElementById('imgPrevBtn');
+            let nextBtn = document.getElementById('imgNextBtn');
+            if (availableImages.length <= 1) {
+                prevBtn.classList.add('hidden');
+                nextBtn.classList.add('hidden');
+            } else {
+                prevBtn.classList.remove('hidden');
+                nextBtn.classList.remove('hidden');
+            }
+        }
+
+        function moveModalSlide(step) {
+            currentImgIdx += step;
+            if (currentImgIdx < 0) currentImgIdx = availableImages.length - 1;
+            if (currentImgIdx >= availableImages.length) currentImgIdx = 0;
+            updateModalImage();
+        }
+
+        function openVideoModal() {
+            if (availableVideos.length === 0) return;
+            currentVidIdx = 0;
+            updateModalVideo();
+            document.getElementById('videoModal').classList.add('active');
+        }
+
+        function updateModalVideo() {
+            let video = document.getElementById('modalVideo');
+            let source = document.getElementById('modalVideoSrc');
+            source.src = availableVideos[currentVidIdx];
+            video.load();
+            video.play();
+            document.getElementById('vidCounter').innerText = `${currentVidIdx + 1} / ${availableVideos.length}`;
+
+            let prevBtn = document.getElementById('vidPrevBtn');
+            let nextBtn = document.getElementById('vidNextBtn');
+            if (availableVideos.length <= 1) {
+                prevBtn.classList.add('hidden');
+                nextBtn.classList.add('hidden');
+            } else {
+                prevBtn.classList.remove('hidden');
+                nextBtn.classList.remove('hidden');
+            }
+        }
+
+        function moveVideoSlide(step) {
+            currentVidIdx += step;
+            if (currentVidIdx < 0) currentVidIdx = availableVideos.length - 1;
+            if (currentVidIdx >= availableVideos.length) currentVidIdx = 0;
+            updateModalVideo();
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+            if (modalId === 'videoModal') {
+                let video = document.getElementById('modalVideo');
+                video.pause();
+                video.currentTime = 0;
+            }
+        }
+
+        scanMediaFiles();
+        loadData();
+    </script>
+</body>
+</html>
