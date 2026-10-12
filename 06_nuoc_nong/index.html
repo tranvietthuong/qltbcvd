@@ -23,7 +23,6 @@
         .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px; }
         h2 { font-size: 0.9rem; color: var(--primary); border-left: 3px solid var(--accent); padding-left: 6px; }
         
-        /* Đổi thẻ a thành button để chạy hàm kiểm tra pass */
         .edit-sheet-btn { background: #16a34a; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; transition: background 0.2s; }
         .edit-sheet-btn:hover { background: #15803d; }
 
@@ -66,7 +65,7 @@
         <div class="section">
             <div class="section-header">
                 <h2>1. Thông số thiết bị & Danh mục Van khóa</h2>
-                <!-- Nút bấm gọi hàm kiểm tra mật khẩu -->
+                <!-- Nút bấm gọi hàm xác thực mật khẩu -->
                 <button onclick="requestEditSheet()" class="edit-sheet-btn">
                     ✏️ Sửa dữ liệu trên Google Sheets
                 </button>
@@ -114,17 +113,18 @@
     </div>
 
     <script>
+        // Link export dữ liệu sheet 06 chính xác
         const SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1beOsAV5Fo3LtbesC9bDzr6IxskCzLLaPejBSzOAwxsU/export?format=xlsx";
-        const SHEET_EDIT_URL = "https://docs.google.com/spreadsheets/d/1beOsAV5Fo3LtbesC9bDzr6IxskCzLLaPejBSzOAwxsU/edit";
+        // Link trực tiếp mở đúng file Google Sheet 06 để chỉnh sửa
+        const SHEET_EDIT_URL = "https://docs.google.com/spreadsheets/d/1beOsAV5Fo3LtbesC9bDzr6IxskCzLLaPejBSzOAwxsU/edit?usp=sharing";
+        
         let parsedSections = [];
-
         let availableImages = [];
         let currentImgIdx = 0;
-
         let availableVideos = [];
         let currentVidIdx = 0;
 
-        // Hàm yêu cầu nhập mật khẩu bảo vệ
+        // Hàm kiểm tra mật khẩu "1" để mở trực tiếp file 06
         function requestEditSheet() {
             let pass = prompt("Nhập mật khẩu chỉnh sửa:");
             if (pass === "1") {

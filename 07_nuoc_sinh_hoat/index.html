@@ -65,7 +65,7 @@
         <div class="section">
             <div class="section-header">
                 <h2>1. Thông số thiết bị & Danh mục Van khóa</h2>
-                <!-- Nút bấm gọi hàm kiểm tra mật khẩu trước khi mở Google Sheets -->
+                <!-- Nút gọi hàm bảo mật mở đúng link Google Sheet 07 -->
                 <button onclick="requestEditSheet()" class="edit-sheet-btn">
                     ✏️ Sửa dữ liệu trên Google Sheets
                 </button>
@@ -113,10 +113,10 @@
     </div>
 
     <script>
-        // Link export dữ liệu sheet 07 mới
+        // Link export dữ liệu sheet 07 chính xác
         const SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1B_60aidTK_jjEolUTl-5879NsRFU7H3QDk-IRSShNzE/export?format=xlsx";
-        // Link chỉnh sửa Google Sheet 07
-        const SHEET_EDIT_URL = "https://docs.google.com/spreadsheets/d/1B_60aidTK_jjEolUTl-5879NsRFU7H3QDk-IRSShNzE/edit";
+        // Link trực tiếp mở file Google Sheet 07 để sửa
+        const SHEET_EDIT_URL = "https://docs.google.com/spreadsheets/d/1B_60aidTK_jjEolUTl-5879NsRFU7H3QDk-IRSShNzE/edit?usp=sharing";
         
         let parsedSections = [];
         let availableImages = [];
@@ -124,7 +124,7 @@
         let availableVideos = [];
         let currentVidIdx = 0;
 
-        // Hàm kiểm tra mật khẩu
+        // Hàm yêu cầu nhập mật khẩu bảo vệ để mở đúng file 07
         function requestEditSheet() {
             let pass = prompt("Nhập mật khẩu chỉnh sửa:");
             if (pass === "1") {
