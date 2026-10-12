@@ -20,7 +20,6 @@
         header p { font-size: 0.85rem; color: #94a3b8; }
         .container { max-width: 1200px; margin: 0 auto; }
         
-        /* Khung hỏi đáp trực tiếp kết nối NotebookLM */
         .direct-chat-box {
             background: #ffffff;
             border: 2px solid var(--accent);
@@ -75,7 +74,6 @@
             background-color: #0369a1;
         }
 
-        /* Lưới 9 hệ thống hạ tầng */
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
         
         .card { 
@@ -109,7 +107,6 @@
             <p>Centara Resort & Spa Vân Đồn - Dashboard Hệ thống Hạ tầng</p>
         </header>
 
-        <!-- Khung tra cứu nhanh dẫn thẳng vào NotebookLM Centara điện -->
         <div class="direct-chat-box">
             <div class="direct-chat-header">
                 <span>⚡</span>
@@ -121,13 +118,12 @@
                     <input type="text" id="chatQueryInput" placeholder="Nhập câu hỏi kỹ thuật điện (VD: Hệ thống DDC có bao nhiêu tủ, tủ DB-A-KT...)..." onkeypress="handleSearchKeyPress(event)">
                     <button type="button" onclick="openNotebookLMQuery()">Tra cứu</button>
                 </div>
-                <div style="margin-top: 8px; font-size: 0.8rem; color: #64748b;">
+                <div style="margin-top: 8px; font-size: 0.80rem; color: #64748b;">
                     🔗 Dữ liệu liên kết trực tiếp từ sổ tay <b>Centara điện</b>. <a href="https://notebook.google.com/notebook/8e9c3bca-7543-415b-9881-c187f155178a" target="_blank" style="color: var(--accent); text-decoration: none; font-weight: 600;">Mở trực tiếp NotebookLM ↗</a>
                 </div>
             </div>
         </div>
 
-        <!-- 9 Hạng mục hệ thống hạ tầng -->
         <div class="grid" id="modulesGrid"></div>
 
         <footer>
@@ -136,7 +132,7 @@
     </div>
 
     <script>
-        // Danh mục chuẩn 9 hệ thống hạ tầng
+        // Danh sách 9 hệ thống hạ tầng với mục 07 là "Nước sinh hoạt" chuẩn xác
         const systems = [
             { id: "01", folder: "01_chiller", icon: "❄️", name: "Hệ thống Chiller" },
             { id: "02", folder: "02_dieu_hoa", icon: "🌀", name: "Hệ thống Điều hòa không khí" },
@@ -144,7 +140,7 @@
             { id: "04", folder: "04_pccc_thong_gio", icon: "💨", name: "Thông gió & Hút khói PCCC" },
             { id: "05", folder: "05_hut_mui", icon: "🍳", name: "Hệ thống Hút mùi bếp" },
             { id: "06", folder: "06_nuoc_nong", icon: "♨️", name: "Nước nóng sinh hoạt" },
-            { id: "07", folder: "07_cap_thoat_nuoc", icon: "💧", name: "Nước lạnh sinh hoạt" },
+            { id: "07", folder: "07_nuoc_sinh_hoat", icon: "💧", name: "Nước sinh hoạt" },
             { id: "08", folder: "08_am_thanh", icon: "🔊", name: "Hệ thống Âm thanh" },
             { id: "09", folder: "09_loc_nuoc_thai", icon: "♻️", name: "Hệ thống Lọc nước thải" }
         ];
@@ -171,10 +167,7 @@
         }
 
         function openNotebookLMQuery() {
-            const queryInput = document.getElementById("chatQueryInput");
             const notebookUrl = "https://notebook.google.com/notebook/8e9c3bca-7543-415b-9881-c187f155178a";
-            
-            // Mở tab mới tới NotebookLM Centara điện
             window.open(notebookUrl, "_blank");
         }
 
