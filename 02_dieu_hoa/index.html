@@ -34,7 +34,7 @@
         th { background: #f1f5f9; color: var(--primary); position: sticky; top: 0; z-index: 10; }
         tr:hover { background: #f8fafc; }
 
-        /* Nhóm 4 nút bấm trực quan */
+        /* Giao diện nhóm 4 nút bấm trực quan */
         .media-triggers { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 5px; align-items: center; }
         .media-btn { background: var(--accent); color: white; border: none; padding: 8px 14px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s; }
         .media-btn:hover { background: #0369a1; }
@@ -62,7 +62,7 @@
 <body>
     <div class="container">
         <header>
-            <h1>Hệ thống Điều hòa</h1>
+            <h1>Hệ thống Điều hòa không khí</h1>
             <a href="../index.html" class="back-btn">← Dashboard</a>
         </header>
 
@@ -82,20 +82,20 @@
         <div class="section">
             <h2>2. Tài liệu trực quan & Video vận hành</h2>
             <div class="media-triggers">
-                <!-- 1. Nút xem ảnh -->
+                <!-- 1. Nút xem ảnh (Slide ảnh của thư mục image) -->
                 <button class="media-btn" id="imgBtn" onclick="openImageModal()" disabled>📁 Đang quét Sơ đồ / Ảnh...</button>
                 
-                <!-- 2. Nút logo máy ảnh (Chụp ảnh và tải về lưu thư mục image) -->
-                <button class="action-icon-btn" onclick="triggerCameraCapture()" title="Chụp ảnh hiện trường">
+                <!-- 2. Nút chụp ảnh hiện trường (Logo máy ảnh) -->
+                <button class="action-icon-btn" onclick="triggerCameraCapture()" title="Chụp ảnh thực tế hệ thống">
                     📷
                 </button>
                 <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none;" onchange="saveCapturedMedia(this, 'image')">
 
-                <!-- 3. Nút xem video -->
+                <!-- 3. Nút xem video (Slide video của thư mục video) -->
                 <button class="media-btn" id="vidBtn" onclick="openVideoModal()" disabled>🎬 Đang quét Video...</button>
                 
-                <!-- 4. Nút logo quay phim (Quay video và tải về lưu thư mục video) -->
-                <button class="action-icon-btn" onclick="triggerVideoCapture()" title="Quay video vận hành">
+                <!-- 4. Nút quay video vận hành (Logo quay phim) -->
+                <button class="action-icon-btn" onclick="triggerVideoCapture()" title="Quay video vận hành thực tế">
                     📹
                 </button>
                 <input type="file" id="videoInput" accept="video/*" capture="environment" style="display:none;" onchange="saveCapturedMedia(this, 'video')">
@@ -149,17 +149,15 @@
             }
         }
 
-        // Kích hoạt camera chụp ảnh
         function triggerCameraCapture() {
             document.getElementById('cameraInput').click();
         }
 
-        // Kích hoạt camera quay video
         function triggerVideoCapture() {
             document.getElementById('videoInput').click();
         }
 
-        // Tự động đặt tên file theo số thứ tự tiếp theo và tải về để lưu vào thư mục tương ứng
+        // Tự động đặt tên file tiếp theo và lưu về máy để đưa vào thư mục tương ứng
         function saveCapturedMedia(input, type) {
             if (input.files && input.files[0]) {
                 let file = input.files[0];
@@ -174,16 +172,16 @@
                 a.click();
                 document.body.removeChild(a);
 
-                alert(`Đã chụp và lưu file thành công dưới tên: ${type}/${newFileName}\n(Hãy đưa file này vào thư mục ${type} của hệ thống để đồng bộ lên GitHub).`);
+                alert(`Đã chụp/quay và lưu file thành công với tên: ${newFileName}\nHãy cho file này vào thư mục "${type}" của hệ thống để đồng bộ lên web.`);
             }
         }
 
-        // Quét file ảnh và video trong thư mục tương ứng
+        // Quét tự động danh sách ảnh và video có trong thư mục image/ và video/
         async function scanMediaFiles() {
             let imgExtensions = ['jpg', 'jpeg', 'png', 'webp'];
             let vidExtensions = ['mp4', 'webm', 'ogg', 'mov'];
 
-            for (let i = 1; i <= 20; i++) {
+            for (let i = 1; i <= 30; i++) {
                 let found = false;
                 for (let ext of imgExtensions) {
                     let path = `image/${i}.${ext}`;
@@ -202,7 +200,7 @@
                 if (!found && i > 3) break;
             }
 
-            for (let j = 1; j <= 20; j++) {
+            for (let j = 1; j <= 30; j++) {
                 let found = false;
                 for (let ext of vidExtensions) {
                     let path = `video/${j}.${ext}`;
@@ -391,7 +389,7 @@
                 nextBtn.classList.add('hidden');
             } else {
                 prevBtn.classList.remove('hidden');
-                nextBtn.classList.remove('hidden');
+                prevBtn.classList.remove('hidden');
             }
         }
 
