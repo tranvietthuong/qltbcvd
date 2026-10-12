@@ -115,7 +115,7 @@
     <script>
         // Link export dữ liệu sheet 07 chính xác
         const SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1B_60aidTK_jjEolUTl-5879NsRFU7H3QDk-IRSShNzE/export?format=xlsx";
-        // Link trực tiếp mở file Google Sheet 07 để sửa
+        // Link trực tiếp mở đúng file Google Sheet 07 để sửa
         const SHEET_EDIT_URL = "https://docs.google.com/spreadsheets/d/1B_60aidTK_jjEolUTl-5879NsRFU7H3QDk-IRSShNzE/edit?usp=sharing";
         
         let parsedSections = [];
@@ -124,7 +124,7 @@
         let availableVideos = [];
         let currentVidIdx = 0;
 
-        // Hàm yêu cầu nhập mật khẩu bảo vệ để mở đúng file 07
+        // Hàm yêu cầu nhập mật khẩu bảo vệ để mở trực tiếp file 07
         function requestEditSheet() {
             let pass = prompt("Nhập mật khẩu chỉnh sửa:");
             if (pass === "1") {
