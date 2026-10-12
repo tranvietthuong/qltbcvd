@@ -34,13 +34,13 @@
         th { background: #f1f5f9; color: var(--primary); position: sticky; top: 0; z-index: 10; }
         tr:hover { background: #f8fafc; }
 
-        /* Giao diện nhóm 4 nút bấm trực quan */
+        /* Giao diện nút gọn gàng */
         .media-triggers { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 5px; align-items: center; }
-        .media-btn { background: var(--accent); color: white; border: none; padding: 8px 14px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s; }
+        .media-btn { background: var(--accent); color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; transition: background 0.2s; }
         .media-btn:hover { background: #0369a1; }
         .media-btn:disabled { background: #94a3b8; cursor: not-allowed; }
         
-        .action-icon-btn { background: #0f172a; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 1rem; display: inline-flex; align-items: center; justify-content: center; transition: background 0.2s; }
+        .action-icon-btn { background: #0f172a; color: white; border: none; padding: 8px 10px; border-radius: 4px; cursor: pointer; font-size: 0.95rem; display: inline-flex; align-items: center; justify-content: center; transition: background 0.2s; }
         .action-icon-btn:hover { background: #334155; }
 
         .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; }
@@ -82,23 +82,23 @@
         <div class="section">
             <h2>2. Tài liệu trực quan & Video vận hành</h2>
             <div class="media-triggers">
-                <!-- 1. Nút xem ảnh -->
-                <button class="media-btn" id="imgBtn" onclick="openImageModal()" disabled>📁 Đang quét Sơ đồ / Ảnh...</button>
+                <!-- 1. Nút xem ảnh (gọn gàng) -->
+                <button class="media-btn" id="imgBtn" onclick="openImageModal()" disabled>📁 Xem Ảnh (0)</button>
                 
-                <!-- 2. Nút chụp ảnh hiện trường (Logo máy ảnh) -->
-                <button class="action-icon-btn" onclick="triggerCameraCapture()" title="Chụp ảnh thực tế hệ thống">
+                <!-- 2. Nút chụp ảnh gắn thông báo lưu thư mục image02 trên Drive -->
+                <button class="action-icon-btn" onclick="triggerCameraCapture()" title="Chụp ảnh (Lưu vào image02)">
                     📷
                 </button>
-                <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none;" onchange="saveCapturedMedia(this, 'image')">
+                <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none;" onchange="saveCapturedMedia(this, 'image02', '1dSrO6Un92gB-HHFkiT4txLxMwxlLbzSn')">
 
-                <!-- 3. Nút xem video -->
-                <button class="media-btn" id="vidBtn" onclick="openVideoModal()" disabled>🎬 Đang quét Video...</button>
+                <!-- 3. Nút xem video (gọn gàng) -->
+                <button class="media-btn" id="vidBtn" onclick="openVideoModal()" disabled>🎬 Xem Video (0)</button>
                 
-                <!-- 4. Nút quay video vận hành (Logo quay phim) -->
-                <button class="action-icon-btn" onclick="triggerVideoCapture()" title="Quay video vận hành thực tế">
+                <!-- 4. Nút quay phim gắn thông báo lưu thư mục video02 trên Drive -->
+                <button class="action-icon-btn" onclick="triggerVideoCapture()" title="Quay video (Lưu vào video02)">
                     📹
                 </button>
-                <input type="file" id="videoInput" accept="video/*" capture="environment" style="display:none;" onchange="saveCapturedMedia(this, 'video')">
+                <input type="file" id="videoInput" accept="video/*" capture="environment" style="display:none;" onchange="saveCapturedMedia(this, 'video02', '1YtDO2XlMu6NV2UqGSIFcojCAgbnjVcG3')">
             </div>
         </div>
 
@@ -157,14 +157,15 @@
             document.getElementById('videoInput').click();
         }
 
-        // Tự động đặt tên file tiếp theo dựa trên số lượng file hiện tại và tải về máy
-        function saveCapturedMedia(input, type) {
+        // Xử lý khi chụp/quay xong trên thiết bị di động
+        function saveCapturedMedia(input, folderName, folderUrl) {
             if (input.files && input.files[0]) {
                 let file = input.files[0];
-                let ext = file.name.split('.').pop() || (type === 'image' ? 'jpg' : 'mp4');
-                let nextIndex = (type === 'image' ? availableImages.length : availableVideos.length) + 1;
+                let ext = file.name.split('.').pop() || (folderName.includes('image') ? 'jpg' : 'mp4');
+                let nextIndex = (folderName.includes('image') ? availableImages.length : availableVideos.length) + 1;
                 let newFileName = `${nextIndex}.${ext}`;
 
+                // Tải file về thiết bị di động với tên chuẩn thứ tự
                 let a = document.createElement('a');
                 a.href = URL.createObjectURL(file);
                 a.download = newFileName;
@@ -172,12 +173,16 @@
                 a.click();
                 document.body.removeChild(a);
 
-                alert(`Đã chụp/quay và lưu file thành công với tên: ${newFileName}\nHãy cho file này vào thư mục "${type}" của hệ thống để đồng bộ lên web.`);
-                input.value = ''; // Reset input để có thể chụp liên tiếp
+                // Thông báo hướng dẫn chi tiết cho người dùng
+                let confirmOpen = confirm(`Đã chụp/quay file thành công với tên: ${newFileName}\n\n[Nhấn OK] để mở nhanh thư mục Google Drive (${folderName}) tải file lên đó.`);
+                if (confirmOpen) {
+                    window.open(folderUrl, '_blank');
+                }
+                input.value = '';
             }
         }
 
-        // Quét thực tế các file tồn tại trong thư mục image/ và video/
+        // Quét file thực tế có trong thư mục image/ và video/ của web tĩnh
         async function scanMediaFiles() {
             availableImages = [];
             availableVideos = [];
@@ -225,19 +230,19 @@
 
             let imgBtn = document.getElementById('imgBtn');
             if (availableImages.length > 0) {
-                imgBtn.innerHTML = `📁 Xem Sơ đồ / Ảnh hệ thống (${availableImages.length})`;
+                imgBtn.innerHTML = `📁 Xem Ảnh (${availableImages.length})`;
                 imgBtn.disabled = false;
             } else {
-                imgBtn.innerHTML = `📁 Không có ảnh trong thư mục`;
+                imgBtn.innerHTML = `📁 Xem Ảnh (0)`;
                 imgBtn.disabled = true;
             }
 
             let vidBtn = document.getElementById('vidBtn');
             if (availableVideos.length > 0) {
-                vidBtn.innerHTML = `🎬 Xem Video Vận Hành (${availableVideos.length})`;
+                vidBtn.innerHTML = `🎬 Xem Video (${availableVideos.length})`;
                 vidBtn.disabled = false;
             } else {
-                vidBtn.innerHTML = `🎬 Không có video trong thư mục`;
+                vidBtn.innerHTML = `🎬 Xem Video (0)`;
                 vidBtn.disabled = true;
             }
         }
