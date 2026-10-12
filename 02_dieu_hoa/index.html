@@ -82,7 +82,7 @@
         <div class="section">
             <h2>2. Tài liệu trực quan & Video vận hành</h2>
             <div class="media-triggers">
-                <!-- 1. Nút xem ảnh (Slide ảnh của thư mục image) -->
+                <!-- 1. Nút xem ảnh -->
                 <button class="media-btn" id="imgBtn" onclick="openImageModal()" disabled>📁 Đang quét Sơ đồ / Ảnh...</button>
                 
                 <!-- 2. Nút chụp ảnh hiện trường (Logo máy ảnh) -->
@@ -91,7 +91,7 @@
                 </button>
                 <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none;" onchange="saveCapturedMedia(this, 'image')">
 
-                <!-- 3. Nút xem video (Slide video của thư mục video) -->
+                <!-- 3. Nút xem video -->
                 <button class="media-btn" id="vidBtn" onclick="openVideoModal()" disabled>🎬 Đang quét Video...</button>
                 
                 <!-- 4. Nút quay video vận hành (Logo quay phim) -->
@@ -157,7 +157,7 @@
             document.getElementById('videoInput').click();
         }
 
-        // Tự động đặt tên file tiếp theo và lưu về máy để đưa vào thư mục tương ứng
+        // Tự động đặt tên file tiếp theo dựa trên số lượng file hiện tại và tải về máy
         function saveCapturedMedia(input, type) {
             if (input.files && input.files[0]) {
                 let file = input.files[0];
@@ -173,15 +173,19 @@
                 document.body.removeChild(a);
 
                 alert(`Đã chụp/quay và lưu file thành công với tên: ${newFileName}\nHãy cho file này vào thư mục "${type}" của hệ thống để đồng bộ lên web.`);
+                input.value = ''; // Reset input để có thể chụp liên tiếp
             }
         }
 
-        // Quét tự động danh sách ảnh và video có trong thư mục image/ và video/
+        // Quét thực tế các file tồn tại trong thư mục image/ và video/
         async function scanMediaFiles() {
+            availableImages = [];
+            availableVideos = [];
+
             let imgExtensions = ['jpg', 'jpeg', 'png', 'webp'];
             let vidExtensions = ['mp4', 'webm', 'ogg', 'mov'];
 
-            for (let i = 1; i <= 30; i++) {
+            for (let i = 1; i <= 20; i++) {
                 let found = false;
                 for (let ext of imgExtensions) {
                     let path = `image/${i}.${ext}`;
@@ -197,10 +201,10 @@
                         break;
                     }
                 }
-                if (!found && i > 3) break;
+                if (!found && i > 2) break;
             }
 
-            for (let j = 1; j <= 30; j++) {
+            for (let j = 1; j <= 20; j++) {
                 let found = false;
                 for (let ext of vidExtensions) {
                     let path = `video/${j}.${ext}`;
@@ -216,7 +220,7 @@
                         break;
                     }
                 }
-                if (!found && j > 3) break;
+                if (!found && j > 2) break;
             }
 
             let imgBtn = document.getElementById('imgBtn');
@@ -225,6 +229,7 @@
                 imgBtn.disabled = false;
             } else {
                 imgBtn.innerHTML = `📁 Không có ảnh trong thư mục`;
+                imgBtn.disabled = true;
             }
 
             let vidBtn = document.getElementById('vidBtn');
@@ -233,6 +238,7 @@
                 vidBtn.disabled = false;
             } else {
                 vidBtn.innerHTML = `🎬 Không có video trong thư mục`;
+                vidBtn.disabled = true;
             }
         }
 
@@ -389,7 +395,7 @@
                 nextBtn.classList.add('hidden');
             } else {
                 prevBtn.classList.remove('hidden');
-                prevBtn.classList.remove('hidden');
+                nextBtn.classList.remove('hidden');
             }
         }
 
