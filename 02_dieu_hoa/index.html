@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản lý Hệ thống Điều hòa - Centara Vân Đồn</title>
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <style>
         :root {
             --primary: #0f172a;
@@ -23,8 +23,11 @@
         .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px; }
         h2 { font-size: 0.9rem; color: var(--primary); border-left: 3px solid var(--accent); padding-left: 6px; }
         
-        .edit-sheet-btn { background: #16a34a; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; transition: background 0.2s; }
-        .edit-sheet-btn:hover { background: #15803d; }
+        .action-btn-group { display: flex; gap: 6px; align-items: center; }
+        .sheet-action-btn { background: #16a34a; color: white; border: none; padding: 6px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; transition: background 0.2s; text-decoration: none; }
+        .sheet-action-btn:hover { background: #15803d; }
+        .sheet-action-btn.appsheet { background: #0284c7; }
+        .sheet-action-btn.appsheet:hover { background: #0369a1; }
 
         h3 { font-size: 0.85rem; margin: 10px 0 5px 0; color: var(--accent); text-transform: uppercase; }
         .search-box { width: 100%; padding: 7px; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 8px; font-size: 0.85rem; }
@@ -34,7 +37,10 @@
         th { background: #f1f5f9; color: var(--primary); position: sticky; top: 0; z-index: 10; }
         tr:hover { background: #f8fafc; }
 
-        /* Giao diện 2 nút xem gọn gàng */
+        /* Style cho ảnh thu nhỏ (thumbnail) trên bảng */
+        .table-thumb { width: 36px; height: 36px; object-fit: cover; border-radius: 4px; cursor: pointer; border: 1px solid var(--border); transition: transform 0.2s; }
+        .table-thumb:hover { transform: scale(1.1); border-color: var(--accent); }
+
         .media-triggers { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 5px; align-items: center; }
         .media-btn { background: var(--accent); color: white; border: none; padding: 8px 14px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s; }
         .media-btn:hover { background: #0369a1; }
@@ -66,22 +72,25 @@
         <div class="section">
             <div class="section-header">
                 <h2>1. Thông số thiết bị & Danh mục Hệ thống Điều hòa</h2>
-                <button onclick="requestEditSheet()" class="edit-sheet-btn">
-                    ✏️ Sửa dữ liệu trên Google Sheets
-                </button>
+                <div class="action-btn-group">
+                    <a href="https://www.appsheet.com/start/c2a373c7-bdad-4295-82b6-6b1360ee4cca" target="_blank" class="sheet-action-btn appsheet" title="Mở AppSheet QLTBCVD để nhập liệu và chụp ảnh hiện trường">
+                        📱 Nhập liệu
+                    </a>
+                    <a href="https://docs.google.com/spreadsheets/d/1T83hfc76wlvzDZwiEARLhonDIQ5qFLbgWHVGIqtNBAO/edit?usp=sharing" target="_blank" class="sheet-action-btn" title="Mở Google Sheets để xem và sửa dữ liệu">
+                        📊 google sheet
+                    </a>
+                </div>
             </div>
             <input type="text" id="search" class="search-box" placeholder="🔍 Tìm kiếm mã thiết bị, khu vực, thông số..." onkeyup="filterTables()">
             <div id="tablesWrapper">
-                <p style="text-align:center; padding: 20px;">Đang tải dữ liệu từ Google Sheet...</p>
+                <p style="text-align:center; padding: 20px;">Đang tải dữ liệu từ Google Sheet (Tab 02)...</p>
             </div>
         </div>
 
         <div class="section">
             <h2>2. Tài liệu trực quan & Video vận hành</h2>
             <div class="media-triggers">
-                <!-- Nút xem ảnh -->
-                <button class="media-btn" id="imgBtn" onclick="openImageModal()" disabled>📁 Đang quét Ảnh...</button>
-                <!-- Nút xem video -->
+                <button class="media-btn" id="imgBtn" onclick="openImageModal()" disabled>📁 Đang quét Sơ đồ / Ảnh...</button>
                 <button class="media-btn" id="vidBtn" onclick="openVideoModal()" disabled>🎬 Đang quét Video...</button>
             </div>
         </div>
@@ -115,23 +124,14 @@
     </div>
 
     <script>
-        const SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1IiE2CqpR3O-Kirer_U9qcpMBTOv_UnMGPtDaX6lr84c/export?format=xlsx";
-        const SHEET_EDIT_URL = "https://docs.google.com/spreadsheets/d/1IiE2CqpR3O-Kirer_U9qcpMBTOv_UnMGPtDaX6lr84c/edit?usp=sharing";
+        // Link CSV public trực tiếp của Tab 02 (GID của tab 02)
+        const CSV_URL = "https://docs.google.com/spreadsheets/d/1T83hfc76wlvzDZwiEARLhonDIQ5qFLbgWHVGIqtNBAO/gviz/tq?tqx=out:csv&sheet=02";
         
         let parsedSections = [];
         let availableImages = [];
         let currentImgIdx = 0;
         let availableVideos = [];
         let currentVidIdx = 0;
-
-        function requestEditSheet() {
-            let pass = prompt("Nhập mật khẩu chỉnh sửa:");
-            if (pass === "1") {
-                window.open(SHEET_EDIT_URL, '_blank');
-            } else if (pass !== null) {
-                alert("Sai mật khẩu! Bạn không có quyền chỉnh sửa.");
-            }
-        }
 
         async function scanMediaFiles() {
             availableImages = [];
@@ -180,10 +180,10 @@
 
             let imgBtn = document.getElementById('imgBtn');
             if (availableImages.length > 0) {
-                imgBtn.innerHTML = `📁 Xem Ảnh (${availableImages.length})`;
+                imgBtn.innerHTML = `📁 Xem Sơ đồ / Ảnh (${availableImages.length})`;
                 imgBtn.disabled = false;
             } else {
-                imgBtn.innerHTML = `📁 Không có ảnh`;
+                imgBtn.innerHTML = `📁 Dùng ảnh từ AppSheet`;
                 imgBtn.disabled = true;
             }
 
@@ -197,58 +197,61 @@
             }
         }
 
-        async function loadData() {
-            try {
-                let res = await fetch(SPREADSHEET_URL);
-                let buf = await res.arrayBuffer();
-                let wb = XLSX.read(buf, { type: 'array' });
-                
-                let sheetName = wb.SheetNames[0];
-                let sheet = wb.Sheets[sheetName];
-                let rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-                
-                parsedSections = [];
-                let currentSec = { title: "THÔNG TIN CHUNG", headers: [], rows: [] };
-                let isHeaderFound = false;
-
-                rows.forEach((r) => {
-                    if (!r || r.length === 0 || r.every(cell => !cell)) return;
-                    let firstCell = String(r[0] || '').trim();
-                    
-                    if (r.length <= 2 && isNaN(firstCell) && firstCell !== '') {
-                        if (currentSec.rows.length > 0 || currentSec.headers.length > 0) {
-                            parsedSections.push(currentSec);
-                        }
-                        currentSec = { title: firstCell, headers: [], rows: [] };
-                        isHeaderFound = false;
+        function loadData() {
+            Papa.parse(CSV_URL, {
+                download: true,
+                header: false,
+                complete: function(results) {
+                    let rows = results.data;
+                    if (!rows || rows.length === 0) {
+                        document.getElementById('tablesWrapper').innerHTML = '<p style="text-align:center;">Không có dữ liệu trong Sheet.</p>';
                         return;
                     }
 
-                    if (!isHeaderFound && (firstCell.toLowerCase().includes('stt') || firstCell.toLowerCase().includes('mã') || firstCell.toLowerCase().includes('tên'))) {
-                        currentSec.headers = r.map(c => String(c || '').trim());
-                        isHeaderFound = true;
-                        return;
-                    }
+                    parsedSections = [];
+                    let currentSec = { title: "THÔNG TIN CHUNG", headers: [], rows: [] };
+                    let isHeaderFound = false;
 
-                    if (isHeaderFound) {
-                        currentSec.rows.push(r);
-                    } else {
-                        if (currentSec.headers.length === 0) {
-                            currentSec.headers = r.map((_, idx) => `Cột ${idx + 1}`);
+                    rows.forEach((r) => {
+                        if (!r || r.length === 0 || r.every(cell => !cell || cell.trim() === '')) return;
+                        let firstCell = String(r[0] || '').trim();
+                        
+                        if (r.length <= 2 && isNaN(firstCell) && firstCell !== '' && !firstCell.toLowerCase().includes('mã')) {
+                            if (currentSec.rows.length > 0 || currentSec.headers.length > 0) {
+                                parsedSections.push(currentSec);
+                            }
+                            currentSec = { title: firstCell, headers: [], rows: [] };
+                            isHeaderFound = false;
+                            return;
                         }
-                        currentSec.rows.push(r);
-                    }
-                });
 
-                if (currentSec.rows.length > 0) {
-                    parsedSections.push(currentSec);
+                        if (!isHeaderFound && (firstCell.toLowerCase().includes('stt') || firstCell.toLowerCase().includes('mã') || firstCell.toLowerCase().includes('nội dung'))) {
+                            currentSec.headers = r.map(c => String(c || '').trim());
+                            isHeaderFound = true;
+                            return;
+                        }
+
+                        if (isHeaderFound) {
+                            currentSec.rows.push(r);
+                        } else {
+                            if (currentSec.headers.length === 0) {
+                                currentSec.headers = r.map((_, idx) => `Cột ${idx + 1}`);
+                            }
+                            currentSec.rows.push(r);
+                        }
+                    });
+
+                    if (currentSec.rows.length > 0) {
+                        parsedSections.push(currentSec);
+                    }
+
+                    renderTables(parsedSections);
+                },
+                error: function(err) {
+                    console.error(err);
+                    document.getElementById('tablesWrapper').innerHTML = '<p style="text-align:center; color:red;">Không thể tải dữ liệu từ Google Sheet. Vui lòng kiểm tra lại kết nối hoặc quyền chia sẻ.</p>';
                 }
-
-                renderTables(parsedSections);
-            } catch (err) {
-                console.error(err);
-                document.getElementById('tablesWrapper').innerHTML = '<p style="text-align:center; color:red;">Không thể tải dữ liệu từ Google Sheet. Vui lòng kiểm tra lại quyền chia sẻ.</p>';
-            }
+            });
         }
 
         function renderTables(sections) {
@@ -275,7 +278,13 @@
                     let maxCols = sec.headers.length || row.length;
                     for (let i = 0; i < maxCols; i++) {
                         let val = row[i] !== undefined ? row[i] : '';
-                        html += `<td>${val}</td>`;
+                        
+                        // Kiểm tra nếu ô chứa link ảnh từ AppSheet/Drive -> Tự động render thành ảnh thu nhỏ
+                        if (typeof val === 'string' && (val.startsWith('http://') || val.startsWith('https://')) && (val.includes('image') || val.includes('drive') || val.includes('appsheet') || val.match(/\.(jpg|jpeg|png|webp)/i))) {
+                            html += `<td><img src="${val}" class="table-thumb" onclick="openSingleImageModal('${val}')" alt="Ảnh hiện trường"></td>`;
+                        } else {
+                            html += `<td>${val}</td>`;
+                        }
                     }
                     html += `</tr>`;
                 });
@@ -283,6 +292,15 @@
             });
 
             wrapper.innerHTML = html;
+        }
+
+        function openSingleImageModal(url) {
+            let img = document.getElementById('modalImg');
+            img.src = url;
+            document.getElementById('modalCounter').innerText = "Ảnh hiện trường";
+            document.getElementById('imgPrevBtn').classList.add('hidden');
+            document.getElementById('imgNextBtn').classList.add('hidden');
+            document.getElementById('imageModal').classList.add('active');
         }
 
         function filterTables() {
@@ -317,7 +335,7 @@
                 nextBtn.classList.add('hidden');
             } else {
                 prevBtn.classList.remove('hidden');
-                nextBtn.classList.remove('hidden');
+                prevBtn.classList.remove('hidden');
             }
         }
 
@@ -350,7 +368,7 @@
                 nextBtn.classList.add('hidden');
             } else {
                 prevBtn.classList.remove('hidden');
-                nextBtn.classList.remove('hidden');
+                prevBtn.classList.remove('hidden');
             }
         }
 
