@@ -42,9 +42,8 @@
         .table-thumb:hover { transform: scale(1.1); border-color: var(--accent); }
 
         .media-triggers { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 5px; align-items: center; }
-        .media-btn { background: var(--accent); color: white; border: none; padding: 8px 14px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s; }
+        .media-btn { background: var(--accent); color: white; border: none; padding: 8px 14px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s; text-decoration: none; }
         .media-btn:hover { background: #0369a1; }
-        .media-btn:disabled { background: #94a3b8; cursor: not-allowed; }
 
         .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; }
         .overlay.active { display: flex; }
@@ -53,10 +52,6 @@
         
         .close-btn { position: absolute; top: 20px; right: 25px; background: rgba(255,255,255,0.2); color: white; border: none; font-size: 1.5rem; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10000; transition: background 0.2s; }
         .close-btn:hover { background: rgba(255,255,255,0.4); }
-        
-        .modal-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.2); color: white; border: none; padding: 12px 16px; cursor: pointer; font-size: 1.2rem; border-radius: 4px; z-index: 10000; }
-        .modal-prev { left: 20px; } .modal-next { right: 20px; }
-        .modal-nav.hidden { display: none; }
         
         .modal-counter { color: white; margin-top: 10px; font-size: 0.9rem; font-weight: 600; }
         footer { text-align: center; font-size: 0.7rem; color: #94a3b8; margin-top: 10px; }
@@ -73,10 +68,10 @@
             <div class="section-header">
                 <h2>1. Thông số thiết bị & Danh mục Hệ thống Điều hòa</h2>
                 <div class="action-btn-group">
-                    <a href="https://www.appsheet.com/start/c2a373c7-bdad-4295-82b6-6b1360ee4cca" target="_blank" class="sheet-action-btn appsheet" title="Mở AppSheet QLTBCVD để nhập liệu và chụp ảnh hiện trường">
+                    <a href="https://www.appsheet.com/newshortcut/c2a373c7-bdad-4295-82b6-6b1360ee4cca" target="_blank" class="sheet-action-btn appsheet" title="Mở AppSheet để nhập liệu">
                         📱 Nhập liệu
                     </a>
-                    <a href="https://docs.google.com/spreadsheets/d/1T83hfc76wlvzDZwiEARLhonDIQ5qFLbgWHVGIqtNBAO/edit?usp=sharing" target="_blank" class="sheet-action-btn" title="Mở Google Sheets để xem và sửa dữ liệu">
+                    <a href="https://docs.google.com/spreadsheets/d/1T83hfc76wIvzDZwiEARLhonDIQ5qFLbgWHVgiqtNBAo/edit?usp=drive_link" target="_blank" class="sheet-action-btn" title="Mở Google Sheet qltbcvd">
                         📊 google sheet
                     </a>
                 </div>
@@ -90,112 +85,29 @@
         <div class="section">
             <h2>2. Tài liệu trực quan & Video vận hành</h2>
             <div class="media-triggers">
-                <button class="media-btn" id="imgBtn" onclick="openImageModal()" disabled>📁 Đang quét Sơ đồ / Ảnh...</button>
-                <button class="media-btn" id="vidBtn" onclick="openVideoModal()" disabled>🎬 Đang quét Video...</button>
+                <a href="https://drive.google.com/drive/folders/1dSrO6Un92gB-HHFkiT4txLxMwxlLbzSn?usp=sharing" target="_blank" class="media-btn">
+                    📁 Xem Sơ đồ / Ảnh Google Drive
+                </a>
             </div>
         </div>
 
         <footer>Phòng Kỹ thuật - Centara Vân Đồn &copy; 2026</footer>
     </div>
 
-    <!-- MODAL ẢNH -->
+    <!-- MODAL ẢNH HIỆN TRƯỜNG -->
     <div id="imageModal" class="overlay">
         <button class="close-btn" onclick="closeModal('imageModal')">&times;</button>
-        <button id="imgPrevBtn" class="modal-nav modal-prev" onclick="moveModalSlide(-1)">&#10094;</button>
         <div class="overlay-content">
-            <img id="modalImg" src="" alt="Sơ đồ hệ thống">
+            <img id="modalImg" src="" alt="Ảnh hiện trường">
         </div>
-        <button id="imgNextBtn" class="modal-nav modal-next" onclick="moveModalSlide(1)">&#10095;</button>
-        <div class="modal-counter" id="modalCounter">1 / 1</div>
-    </div>
-
-    <!-- MODAL VIDEO -->
-    <div id="videoModal" class="overlay">
-        <button class="close-btn" onclick="closeModal('videoModal')">&times;</button>
-        <button id="vidPrevBtn" class="modal-nav modal-prev" onclick="moveVideoSlide(-1)">&#10094;</button>
-        <div class="overlay-content">
-            <video id="modalVideo" controls>
-                <source id="modalVideoSrc" src="" type="video/mp4">
-                Trình duyệt của bạn không hỗ trợ video.
-            </video>
-        </div>
-        <button id="vidNextBtn" class="modal-nav modal-next" onclick="moveVideoSlide(1)">&#10095;</button>
-        <div class="modal-counter" id="vidCounter">1 / 1</div>
+        <div class="modal-counter" id="modalCounter">Ảnh hiện trường</div>
     </div>
 
     <script>
-        // Link CSV public trực tiếp của Tab 02 (GID của tab 02)
-        const CSV_URL = "https://docs.google.com/spreadsheets/d/1T83hfc76wlvzDZwiEARLhonDIQ5qFLbgWHVGIqtNBAO/gviz/tq?tqx=out:csv&sheet=02";
+        // Link CSV public trực tiếp của Tab 02
+        const CSV_URL = "https://docs.google.com/spreadsheets/d/1T83hfc76wIvzDZwiEARLhonDIQ5qFLbgWHVgiqtNBAo/gviz/tq?tqx=out:csv&sheet=02";
         
         let parsedSections = [];
-        let availableImages = [];
-        let currentImgIdx = 0;
-        let availableVideos = [];
-        let currentVidIdx = 0;
-
-        async function scanMediaFiles() {
-            availableImages = [];
-            availableVideos = [];
-
-            let imgExtensions = ['jpg', 'jpeg', 'png', 'webp'];
-            let vidExtensions = ['mp4', 'webm', 'ogg', 'mov'];
-
-            for (let i = 1; i <= 20; i++) {
-                let found = false;
-                for (let ext of imgExtensions) {
-                    let path = `image/${i}.${ext}`;
-                    let loaded = await new Promise((resolve) => {
-                        let img = new Image();
-                        img.onload = () => resolve(true);
-                        img.onerror = () => resolve(false);
-                        img.src = path;
-                    });
-                    if (loaded) {
-                        availableImages.push(path);
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found && i > 2) break;
-            }
-
-            for (let j = 1; j <= 20; j++) {
-                let found = false;
-                for (let ext of vidExtensions) {
-                    let path = `video/${j}.${ext}`;
-                    let loaded = await new Promise((resolve) => {
-                        let vid = document.createElement('video');
-                        vid.onloadedmetadata = () => resolve(true);
-                        vid.onerror = () => resolve(false);
-                        vid.src = path;
-                    });
-                    if (loaded) {
-                        availableVideos.push(path);
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found && j > 2) break;
-            }
-
-            let imgBtn = document.getElementById('imgBtn');
-            if (availableImages.length > 0) {
-                imgBtn.innerHTML = `📁 Xem Sơ đồ / Ảnh (${availableImages.length})`;
-                imgBtn.disabled = false;
-            } else {
-                imgBtn.innerHTML = `📁 Dùng ảnh từ AppSheet`;
-                imgBtn.disabled = true;
-            }
-
-            let vidBtn = document.getElementById('vidBtn');
-            if (availableVideos.length > 0) {
-                vidBtn.innerHTML = `🎬 Xem Video (${availableVideos.length})`;
-                vidBtn.disabled = false;
-            } else {
-                vidBtn.innerHTML = `🎬 Không có video`;
-                vidBtn.disabled = true;
-            }
-        }
 
         function loadData() {
             Papa.parse(CSV_URL, {
@@ -249,7 +161,11 @@
                 },
                 error: function(err) {
                     console.error(err);
-                    document.getElementById('tablesWrapper').innerHTML = '<p style="text-align:center; color:red;">Không thể tải dữ liệu từ Google Sheet. Vui lòng kiểm tra lại kết nối hoặc quyền chia sẻ.</p>';
+                    document.getElementById('tablesWrapper').innerHTML = `
+                        <div style="text-align:center; padding: 20px; color:#b91c1c;">
+                            <p style="font-weight:600; margin-bottom: 8px;">⚠️ Không thể tải dữ liệu từ Google Sheet.</p>
+                            <p style="font-size: 0.8rem; color:#64748b;">Vui lòng kiểm tra quyền chia sẻ file Google Sheet ở chế độ "Bất kỳ ai có đường liên kết đều có thể xem".</p>
+                        </div>`;
                 }
             });
         }
@@ -297,10 +213,11 @@
         function openSingleImageModal(url) {
             let img = document.getElementById('modalImg');
             img.src = url;
-            document.getElementById('modalCounter').innerText = "Ảnh hiện trường";
-            document.getElementById('imgPrevBtn').classList.add('hidden');
-            document.getElementById('imgNextBtn').classList.add('hidden');
             document.getElementById('imageModal').classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
         }
 
         function filterTables() {
@@ -316,79 +233,6 @@
             });
         }
 
-        function openImageModal() {
-            if (availableImages.length === 0) return;
-            currentImgIdx = 0;
-            updateModalImage();
-            document.getElementById('imageModal').classList.add('active');
-        }
-
-        function updateModalImage() {
-            let img = document.getElementById('modalImg');
-            img.src = availableImages[currentImgIdx];
-            document.getElementById('modalCounter').innerText = `${currentImgIdx + 1} / ${availableImages.length}`;
-            
-            let prevBtn = document.getElementById('imgPrevBtn');
-            let nextBtn = document.getElementById('imgNextBtn');
-            if (availableImages.length <= 1) {
-                prevBtn.classList.add('hidden');
-                nextBtn.classList.add('hidden');
-            } else {
-                prevBtn.classList.remove('hidden');
-                prevBtn.classList.remove('hidden');
-            }
-        }
-
-        function moveModalSlide(step) {
-            currentImgIdx += step;
-            if (currentImgIdx < 0) currentImgIdx = availableImages.length - 1;
-            if (currentImgIdx >= availableImages.length) currentImgIdx = 0;
-            updateModalImage();
-        }
-
-        function openVideoModal() {
-            if (availableVideos.length === 0) return;
-            currentVidIdx = 0;
-            updateModalVideo();
-            document.getElementById('videoModal').classList.add('active');
-        }
-
-        function updateModalVideo() {
-            let video = document.getElementById('modalVideo');
-            let source = document.getElementById('modalVideoSrc');
-            source.src = availableVideos[currentVidIdx];
-            video.load();
-            video.play();
-            document.getElementById('vidCounter').innerText = `${currentVidIdx + 1} / ${availableVideos.length}`;
-
-            let prevBtn = document.getElementById('vidPrevBtn');
-            let nextBtn = document.getElementById('vidNextBtn');
-            if (availableVideos.length <= 1) {
-                prevBtn.classList.add('hidden');
-                nextBtn.classList.add('hidden');
-            } else {
-                prevBtn.classList.remove('hidden');
-                prevBtn.classList.remove('hidden');
-            }
-        }
-
-        function moveVideoSlide(step) {
-            currentVidIdx += step;
-            if (currentVidIdx < 0) currentVidIdx = availableVideos.length - 1;
-            if (currentVidIdx >= availableVideos.length) currentVidIdx = 0;
-            updateModalVideo();
-        }
-
-        function closeModal(modalId) {
-            document.getElementById(modalId).classList.remove('active');
-            if (modalId === 'videoModal') {
-                let video = document.getElementById('modalVideo');
-                video.pause();
-                video.currentTime = 0;
-            }
-        }
-
-        scanMediaFiles();
         loadData();
     </script>
 </body>
