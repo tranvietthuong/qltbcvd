@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lịch bật tắt thiết bị - Centara Vân Đồn</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <style>
+        :root {
+            --primary: #0f172a;
+            --accent: #0284c7;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --border: #e2e8f0;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
+        body { background: var(--bg); color: #334155; padding: 10px; }
+        header { display: flex; justify-content: space-between; align-items: center; background: var(--primary); color: white; padding: 10px 12px; border-radius: 6px; margin-bottom: 10px; }
+        header h1 { font-size: 0.95rem; text-transform: uppercase; }
+        .back-btn { text-decoration: none; background: var(--accent); color: white; padding: 5px 10px; border-radius: 4px; font-size: 0.8rem; }
+        .section { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 10px; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
+        
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px; }
+        h2 { font-size: 0.9rem; color: var(--primary); border-left: 3px solid var(--accent); padding-left: 6px; }
+        
+        .action-btn-group { display: flex; gap: 6px; align-items: center; }
+        .sheet-action-btn { background: #16a34a; color: white; border: none; padding: 6px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; transition: background 0.2s; text-decoration: none; }
+        .sheet-action-btn:hover { background: #15803d; }
+        .sheet-action-btn.appsheet { background: #0284c7; }
+        .sheet-action-btn.appsheet:hover { background: #0369a1; }
+
+        h3 { font-size: 0.85rem; margin: 10px 0 5px 0; color: var(--accent); text-transform: uppercase; }
+        .search-box { width: 100%; padding: 7px; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 8px; font-size: 0.85rem; }
+        
+        .table-container { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; table-layout: fixed; }
+        th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: middle; word-wrap: break-word; }
+        
+        th:nth-child(1), td:nth-child(1) { width: 15%; text-align: center; }
+        th:nth-child(2), td:nth-child(2) { width: 85%; }
+        th:nth-child(3), td:nth-child(3) { display: none; }
+
+        th { background: #f1f5f9; color: var(--primary); position: sticky; top: 0; z-index: 10; white-space: nowrap; }
+        tr:hover { background: #f8fafc; }
+
+        .media-triggers { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 5px; align-items: center; }
+        .media-btn { background: var(--accent); color: white; border: none; padding: 8px 14px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s; }
+        .media-btn:hover { background: #0369a1; }
+        .media-btn:disabled { background: #94a3b8; cursor: not-allowed; }
+
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; }
+        .overlay.active { display: flex; }
+        .overlay-content { position: relative; max-width: 90%; max-height: 85%; display: flex; justify-content: center; align-items: center; }
+        .overlay-content img, .overlay-content video { max-width: 100%; max-height: 85vh; object-fit: contain; border-radius: 4px; }
+        
+        .close-btn { position: absolute; top: 20px; right: 25px; background: rgba(255,255,255,0.2); color: white; border: none; font-size: 1.5rem; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10000; transition: background 0.2s; }
+        .close-btn:hover { background: rgba(255,255,255,0.4); }
+        
+        .modal-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.2); color: white; border: none; padding: 12px 16px; cursor: pointer; font-size: 1.2rem; border-radius: 4px; z-index: 10000; }
+        .modal-prev { left: 20px; } .modal-next { right: 20px; }
+        .modal-nav.hidden { display: none; }
+        
+        .modal-counter { color: white; margin-top: 10px; font-size: 0.9rem; font-weight: 600; }
+        footer { text-align: center; font-size: 0.7rem; color: #94a3b8; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>LỊCH BẬT TẮT THIẾT BỊ</h1>
+            <a href="../index.html" class="back-btn">← Dashboard</a>
+        </header>
+
+        <div class="section">
+            <div class="section-header">
+                <h2>1. Thông số thiết bị & Danh mục LỊCH BẬT TẮT THIẾT BỊ</h2>
+                <div class="action-btn-group">
+                    <a href="https://www.appsheet.com/newshortcut/c2a373c7-bdad-4295-82b6-6b1360ee4cca" target="_blank" class="sheet-action-btn appsheet" title="Mở AppSheet để nhập liệu">
+                        📱 Appsheet
+                    </a>
+                    <button onclick="requestEditSheet()" class="sheet-action-btn" title="Mở Google Sheet qltbcvd">
+                        📊 google sheet
+                    </button>
+                </div>
+            </div>
+            <input type="text" id="search" class="search-box" placeholder="🔍 Tìm kiếm mã thiết bị, khu vực, thông số..." onkeyup="filterTables()">
+            <div id="tablesWrapper">
+                <p style="text-align:center; padding: 20px;">Đang tải dữ liệu từ Google Sheet...</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>2. Tài liệu trực quan & Video vận hành</h2>
+            <div class="media-triggers">
+                <button class="media-btn" id="imgBtn" onclick="openImageModal()" disabled>📁 Xem ảnh...</button>
+                <button class="media-btn" id="vidBtn" onclick="openVideoModal()" disabled>🎬 Xem video...</button>
+            </div>
+        </div>
+
+        <footer>Phòng Kỹ thuật - Centara Vân Đồn &copy; 2026</footer>
+    </div>
+
+    <!-- MODAL ẢNH -->
+    <div id="imageModal" class="overlay">
+        <button class="close-btn" onclick="closeModal('imageModal')">&times;</button>
+        <button id="imgPrevBtn" class="modal-nav modal-prev" onclick="moveModalSlide(-1)">&#10094;</button>
+        <div class="overlay-content">
+            <img id="modalImg" src="" alt="Sơ đồ hệ thống">
+        </div>
+        <button id="imgNextBtn" class="modal-nav modal-next" onclick="moveModalSlide(1)">&#10095;</button>
+        <div class="modal-counter" id="modalCounter">1 / 1</div>
+    </div>
+
+    <!-- MODAL VIDEO -->
+    <div id="videoModal" class="overlay">
+        <button class="close-btn" onclick="closeModal('videoModal')">&times;</button>
+        <button id="vidPrevBtn" class="modal-nav modal-prev" onclick="moveVideoSlide(-1)">&#10094;</button>
+        <div class="overlay-content">
+            <video id="modalVideo" controls>
+                <source id="modalVideoSrc" src="" type="video/mp4">
+                Trình duyệt không hỗ trợ video.
+            </video>
+        </div>
+        <button id="vidNextBtn" class="modal-nav modal-next" onclick="moveVideoSlide(1)">&#10095;</button>
+        <div class="modal-counter" id="vidCounter">1 / 1</div>
+    </div>
+
+    <script>
+        // Trỏ thẳng cố định tới đúng Tab "10" của Google Sheet[cite: 1]
+        const CSV_URL = "https://docs.google.com/spreadsheets/d/1T83hfc76wIvzDZwiEARLhonDIQ5qFLbgWHVgiqtNBAo/gviz/tq?tqx=out:csv&sheet=10";
+        const SHEET_EDIT_URL = "https://docs.google.com/spreadsheets/d/1T83hfc76wIvzDZwiEARLhonDIQ5qFLbgWHVgiqtNBAo/edit?usp=sharing";
+        
+        let availableImages = [];
+        let currentImgIdx = 0;
+        let availableVideos = [];
+        let currentVidIdx = 0;
+
+        function requestEditSheet() {
+            let pass = prompt("Nhập mật khẩu chỉnh sửa:");
+            if (pass === "1") {
+                window.open(SHEET_EDIT_URL, '_blank');
+            } else if (pass !== null) {
+                alert("Sai mật khẩu! Bạn không có quyền chỉnh sửa.");
+            }
+        }
+
+        async function scanMediaFiles() {
+            availableImages = [];
+            availableVideos = [];
+
+            let imgExtensions = ['jpg', 'jpeg', 'png', 'webp'];
+            let vidExtensions = ['mp4', 'webm', 'ogg', 'mov'];
+
+            for (let i = 1; i <= 20; i++) {
+                let found = false;
+                for (let ext of imgExtensions) {
+                    let path = `image/${i}.${ext}`;
+                    let loaded = await new Promise((resolve) => {
+                        let img = new Image();
+                        img.onload = () => resolve(true);
+                        img.onerror = () => resolve(false);
+                        img.src = path;
+                    });
+                    if (loaded) {
+                        availableImages.push(path);
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found && i > 2) break;
+            }
+
+            for (let j = 1; j <= 20; j++) {
+                let found = false;
+                for (let ext of vidExtensions) {
+                    let path = `video/${j}.${ext}`;
+                    let loaded = await new Promise((resolve) => {
+                        let vid = document.createElement('video');
+                        vid.onloadedmetadata = () => resolve(true);
+                        vid.onerror = () => resolve(false);
+                        vid.src = path;
+                    });
+                    if (loaded) {
+                        availableVideos.push(path);
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found && j > 2) break;
+            }
+
+            let imgBtn = document.getElementById('imgBtn');
+            if (availableImages.length > 0) {
+                imgBtn.innerHTML = `📁 Xem ảnh (${availableImages.length})`;
+                imgBtn.disabled = false;
+            } else {
+                imgBtn.innerHTML = `📁 Xem ảnh`;
+                imgBtn.disabled = true;
+            }
+
+            let vidBtn = document.getElementById('vidBtn');
+            if (availableVideos.length > 0) {
+                vidBtn.innerHTML = `🎬 Xem video (${availableVideos.length})`;
+                vidBtn.disabled = false;
+            } else {
+                vidBtn.innerHTML = `🎬 Xem video`;
+                vidBtn.disabled = true;
+            }
+        }
+
+        function loadData() {
+            Papa.parse(CSV_URL, {
+                download: true,
+                header: false,
+                complete: function(results) {
+                    let rows = results.data;
+                    if (!rows || rows.length === 0) {
+                        document.getElementById('tablesWrapper').innerHTML = '<p style="text-align:center;">Không có dữ liệu trong Sheet.</p>';
+                        return;
+                    }
+
+                    let headers = [];
+                    let dataRows = [];
+                    let isHeaderFound = false;
+
+                    rows.forEach(r => {
+                        if (!r || r.length === 0 || r.every(cell => !cell || String(cell).trim() === '')) return;
+                        let firstCell = String(r[0] || '').trim().toLowerCase();
+
+                        if (!isHeaderFound && (firstCell.includes('mã') || firstCell.includes('stt'))) {
+                            headers = r.map((c, index) => {
+                                let text = String(c || '').trim();
+                                if (index === 0) return "Mã";
+                                return text;
+                            });
+                            isHeaderFound = true;
+                            return;
+                        }
+
+                        if (isHeaderFound) {
+                            dataRows.push(r);
+                        }
+                    });
+
+                    if (headers.length === 0 && rows.length > 1) {
+                        headers = ["Mã", "Nội dung", "Ảnh"];
+                        for (let i = 1; i < rows.length; i++) {
+                            if (rows[i].some(c => c)) dataRows.push(rows[i]);
+                        }
+                    }
+
+                    renderTable(headers, dataRows);
+                },
+                error: function(err) {
+                    console.error(err);
+                    document.getElementById('tablesWrapper').innerHTML = '<p style="text-align:center; color:red;">Không thể tải dữ liệu.</p>';
+                }
+            });
+        }
+
+        function renderTable(headers, rows) {
+            let wrapper = document.getElementById('tablesWrapper');
+            if (rows.length === 0) {
+                wrapper.innerHTML = '<p style="text-align:center;">Không có dữ liệu hiển thị.</p>';
+                return;
+            }
+
+            let html = `<div class="table-container"><table>`;
+            if (headers.length > 0) {
+                html += `<thead><tr>`;
+                headers.forEach(h => html += `<th>${h}</th>`);
+                html += `</tr></thead>`;
+            }
+            html += `<tbody>`;
+            rows.forEach(row => {
+                html += `<tr>`;
+                let maxCols = headers.length || row.length;
+                for (let i = 0; i < maxCols; i++) {
+                    let val = row[i] !== undefined ? String(row[i]).trim() : '';
+                    html += `<td>${val}</td>`;
+                }
+                html += `</tr>`;
+            });
+            html += `</tbody></table></div>`;
+
+            wrapper.innerHTML = html;
+        }
+
+        function openImageModal() {
+            if (availableImages.length === 0) return;
+            currentImgIdx = 0;
+            updateModalImage();
+            document.getElementById('imageModal').classList.add('active');
+        }
+
+        function updateModalImage() {
+            let img = document.getElementById('modalImg');
+            img.src = availableImages[currentImgIdx];
+            document.getElementById('modalCounter').innerText = `${currentImgIdx + 1} / ${availableImages.length}`;
+            
+            let prevBtn = document.getElementById('imgPrevBtn');
+            let nextBtn = document.getElementById('imgNextBtn');
+            if (availableImages.length <= 1) {
+                prevBtn.classList.add('hidden');
+                nextBtn.classList.add('hidden');
+            } else {
+                prevBtn.classList.remove('hidden');
+                prevBtn.classList.remove('hidden');
+            }
+        }
+
+        function moveModalSlide(step) {
+            currentImgIdx += step;
+            if (currentImgIdx < 0) currentImgIdx = availableImages.length - 1;
+            if (currentImgIdx >= availableImages.length) currentImgIdx = 0;
+            updateModalImage();
+        }
+
+        function openVideoModal() {
+            if (availableVideos.length === 0) return;
+            currentVidIdx = 0;
+            updateModalVideo();
+            document.getElementById('videoModal').classList.add('active');
+        }
+
+        function updateModalVideo() {
+            let video = document.getElementById('modalVideo');
+            let source = document.getElementById('modalVideoSrc');
+            source.src = availableVideos[currentVidIdx];
+            video.load();
+            video.play();
+            document.getElementById('vidCounter').innerText = `${currentVidIdx + 1} / ${availableVideos.length}`;
+
+            let prevBtn = document.getElementById('vidPrevBtn');
+            let nextBtn = document.getElementById('vidNextBtn');
+            if (availableVideos.length <= 1) {
+                prevBtn.classList.add('hidden');
+                nextBtn.classList.add('hidden');
+            } else {
+                prevBtn.classList.remove('hidden');
+                prevBtn.classList.remove('hidden');
+            }
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+            if (modalId === 'videoModal') {
+                let video = document.getElementById('modalVideo');
+                video.pause();
+                video.currentTime = 0;
+            }
+        }
+
+        function filterTables() {
+            let keyword = document.getElementById('search').value.toLowerCase();
+            let trs = document.querySelectorAll('.table-container table tbody tr');
+            trs.forEach(tr => {
+                let text = tr.innerText.toLowerCase();
+                tr.style.display = text.includes(keyword) ? '' : 'none';
+            });
+        }
+
+        scanMediaFiles();
+        loadData();
+    </script>
+</body>
+</html>
